@@ -30,10 +30,8 @@ public:
 
   // Extend the range of the passed-in ticks
   // Assumes that ticks is in the future
-  const ticksExtraRange_t extend(ticks8_t ticks);
   const ticksExtraRange_t extend(ticks16_t ticks);
 
-  const ticksExtraRange_t extendTimeInPast(ticks8_t ticks);
   const ticksExtraRange_t extendTimeInPast(ticks16_t ticks);
 
   const ticks16_t getSysRange();
