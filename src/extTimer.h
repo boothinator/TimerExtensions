@@ -18,6 +18,7 @@
 #define TIMER_EXT_EXT_TIMER_H_
 
 #include "timerTypes.h"
+#include <avr/io.h>
 
 // Extend the range of 16-bit AVR timers
 class ExtTimer
