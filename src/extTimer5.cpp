@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Lesser Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef TIMER_EXT_EXT_TIMER0_H_
-#define TIMER_EXT_EXT_TIMER0_H_
+#ifndef TIMER_EXT_EXT_TIMER5_H_
+#define TIMER_EXT_EXT_TIMER5_H_
 
 #include "extTimer.h"
 
-#ifdef HAVE_TCNT0
+#ifdef HAVE_TCNT5
 
-ExtTimer ExtTimer0(&TCNT0, nullptr);
+ExtTimer ExtTimer5(&TCNT5L, &TCNT5H);
 
-ISR(TIMER0_OVF_vect)
+ISR(TIMER5_OVF_vect)
 {
-  ExtTimer0.processOverflow();
+  ExtTimer5.processOverflow();
 }
 
-#endif // HAVE_TCNT0
+#endif // HAVE_TCNT5
 
-#endif // TIMER_EXT_EXT_TIMER0_H_
+#endif // TIMER_EXT_EXT_TIMER5_H_
