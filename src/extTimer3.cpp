@@ -19,6 +19,8 @@
 
 #include "extTimer.h"
 
+#include<avr/interrupt.h>
+
 #ifdef HAVE_TCNT3
 
 ExtTimer ExtTimer3(&TCNT3L, &TCNT3H);
