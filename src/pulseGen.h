@@ -66,7 +66,7 @@ private:
   ExtTimer *tcnt;
 
   // TODO: prefix with underscore
-  ticksSysRange_t minChangeTicks; // Min number of ticks to update a timer value or cancel the pulse
+  ticks16_t minChangeTicks; // Min number of ticks to update a timer value or cancel the pulse
   volatile PulseState pulseState = PulseState::Idle;
   stateChangeCallback_t cb = nullptr;
   const void *cbData = nullptr;

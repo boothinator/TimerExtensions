@@ -34,7 +34,7 @@ void ExtComp::scheduleEvent(ticksExtraRange_t ticks, callback_t cb)
 
 void ExtComp::processCompareEvent()
 {
-  if (_cb && _timer->extendTimeInPast((ticksSysRange_t)_ticks) == _ticks)
+  if (_cb && _timer->extendTimeInPast((ticks16_t)_ticks) == _ticks)
   {
     _cb();
     _cb = nullptr;

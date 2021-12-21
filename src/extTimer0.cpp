@@ -1,4 +1,4 @@
-// AVR Timer Types
+// Extended Range AVR Timer
 // Copyright (C) 2021  Joshua Booth
 
 // This program is free software: you can redistribute it and/or modify
@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Lesser Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef TIMER_EXT_TIMER_TYPES_H_
-#define TIMER_EXT_TIMER_TYPES_H_
+#ifndef TIMER_EXT_EXT_TIMER0_H_
+#define TIMER_EXT_EXT_TIMER0_H_
 
-#include <Arduino.h>
+#include "extTimer.h"
 
-typedef uint8_t  ticks8_t;
-typedef uint16_t ticks16_t;
-typedef uint32_t ticksExtraRange_t;
+#ifdef HAVE_TCNT0
 
-#endif // TIMER_EXT_TIMER_TYPES_H_
+extern ExtTimer ExtTimer0(&TCNT0, nullptr);
+
+#endif // HAVE_TCNT0
+
+#endif // TIMER_EXT_EXT_TIMER0_H_

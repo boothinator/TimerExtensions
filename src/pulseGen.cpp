@@ -115,7 +115,7 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
     // Use the compare interrupt to check if it's time to schedule,
     // but give us plenty of time to schedule by checking
     // UINT16_MAX - 1 ticks before the event
-    *ocr = ((ticksSysRange_t) start) + 1;
+    *ocr = ((ticks16_t) start) + 1;
 
     pulseState = PulseState::WaitingToScheduleHigh;
     if (cb)
@@ -166,7 +166,7 @@ void PulseGen::updateState()
     // Use the compare interrupt to check if it's time to schedule,
     // but give us plenty of time to schedule by checking
     // UINT16_MAX - 1 ticks before the event
-    *ocr = ((ticksSysRange_t)end) + 1;
+    *ocr = ((ticks16_t)end) + 1;
 
     pulseState = PulseState::WaitingToScheduleLow;
     if (cb)
@@ -200,7 +200,7 @@ void PulseGen::updateState()
 // Must be called from ISR or in critical section
 void PulseGen::scheduleHighState()
 {
-  *ocr = (ticksSysRange_t) start;
+  *ocr = (ticks16_t) start;
 
   // Set bit on compare match
   *tccra |= _BV(com0);
@@ -215,7 +215,7 @@ void PulseGen::scheduleHighState()
 // Must be called from ISR or in critical section
 void PulseGen::scheduleLowState()
 {
-  *ocr = (ticksSysRange_t) end;
+  *ocr = (ticks16_t) end;
 
   // Clear bit on compare match
   *tccra &= ~_BV(com0);

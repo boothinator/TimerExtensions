@@ -20,60 +20,81 @@
 
 #include "timerTypes.h"
 
-ExtTimer::ExtTimer(volatile uint16_t *tcnt)
+ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth)
 {
-  assert(tcnt);
+  assert(tcntl);
 
-  this->_tcnt = tcnt;
-  _overflowCount = 0;
+  this->_tcntl = tcntl;
+  this->_tcnth = tcnth;
 }
 
 const ticksExtraRange_t ExtTimer::get()
 {
-  char prevSREG = SREG;
-  noInterrupts();
-
-  ticksExtraRange_t tmp = *_tcnt + ((ticksExtraRange_t)_overflowCount << 16);
-
-  SREG = prevSREG; // restore interrupt state of the caller
+  ticksExtraRange_t tmp = getSysRange();
+  
+  tmp += _overflowTicks;
 
   return tmp;
 }
 
-const ticksExtraRange_t ExtTimer::extend(ticksSysRange_t ticks)
+const ticksExtraRange_t ExtTimer::extend(ticks16_t ticks)
 {
-  ticksExtraRange_t extTicks = ticks + ((ticksExtraRange_t)_overflowCount << 16);
+  ticksExtraRange_t extTicks = ticks + _overflowTicks;
 
   // Add another overflow if the ticks is before tcnt.
   // We're assuming that ticks is in the future, so so tcnt needs to roll over to get there.
   if (ticks < getSysRange())
   {
-    extTicks += (1UL << 16);
+    if (_tcnth)
+    {
+      // 16-bit timer
+      extTicks += (1UL << 16);
+    }
+    else
+    {
+      // 8-bit timer
+      extTicks += (1UL << 8);
+    }
   }
 
   return extTicks;
 }
 
-const ticksExtraRange_t ExtTimer::extendTimeInPast(ticksSysRange_t ticks)
+const ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks)
 {
-  ticksExtraRange_t extTicks = ticks + ((ticksExtraRange_t)_overflowCount << 16);
+  ticksExtraRange_t extTicks = ticks + _overflowTicks;
 
   // Subtract another overflow if the ticks is after tcnt.
   // We're assuming that ticks is in the past, so so tcnt would have rolled over to get here.
   if (getSysRange() < ticks)
   {
-    extTicks -= (1UL << 16);
+    if (_tcnth)
+    {
+      // 16-bit timer
+      extTicks -= (1UL << 16);
+    }
+    else
+    {
+      // 8-bit timer
+      extTicks -= (1UL << 8);
+    }
   }
 
   return extTicks;
 }
 
-const ticksSysRange_t ExtTimer::getSysRange()
+const ticks16_t ExtTimer::getSysRange()
 {
   char prevSREG = SREG;
   noInterrupts();
 
-  ticksExtraRange_t tmp = *_tcnt;
+  ticksExtraRange_t tmp = *_tcntl;
+
+  // Follow correct 16-bit register access rules by loading the low register first
+  if (_tcnth)
+  {
+    tmp += (*_tcnth) << 8;
+  }
 
   SREG = prevSREG; // restore interrupt state of the caller
 
@@ -85,19 +106,44 @@ const uint16_t ExtTimer::getOverflowCount()
   char prevSREG = SREG;
   noInterrupts();
 
-  ticksExtraRange_t tmp = _overflowCount;
+  ticksExtraRange_t tmp = _overflowTicks;
 
   SREG = prevSREG; // restore interrupt state of the caller
+
+  if (_tcnth)
+  {
+    // Discard bottom 16 bits for 16-bit timers
+    tmp >>= 16;
+  }
+  else
+  {
+    // Discard bottom 8 bits for 8-bit timers
+    tmp >>= 8;
+  }
 
   return tmp;
 }
 
 void ExtTimer::resetOverflowCount()
 {
-  _overflowCount = 0;
+  char prevSREG = SREG;
+  noInterrupts();
+
+  _overflowTicks = 0;
+
+  SREG = prevSREG; // restore interrupt state of the caller
 }
 
 void ExtTimer::processOverflow()
 {
-  _overflowCount++;
+  if (_tcnth)
+  {
+    // add 65536 to the overflow ticks counter on overflow for 16-bit timers
+    _overflowTicks += (1UL << 16);
+  }
+  else
+  {
+    // add 256 to the overflow ticks counter on overflow for 8-bit timers
+    _overflowTicks += (1UL << 8);
+  }
 }
