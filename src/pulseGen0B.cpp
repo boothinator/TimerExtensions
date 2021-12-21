@@ -26,7 +26,7 @@
 
 // Note: The Force Output Compare bits are on TCCRxB for 8-bit counters, but
 // they're on TCCRxC for 16-bit counters
-PulseGen PulseGen0B(&OCR0B, nullptr, &TCCR0A, &TCCR0B, &TCCR0B, COM0B1, COM0B0, FOC0B, &ExtTimer0);
+PulseGen PulseGen0B(&OCR0B, nullptr, &TCCR0A, &TCCR0B, &TCCR0B, &TIMSK0, COM0B1, COM0B0, FOC0B, OCIE0B, &ExtTimer0);
 
 ISR(TIMER0_COMPB_vect)
 {

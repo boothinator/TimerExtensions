@@ -24,7 +24,7 @@
 class ExtTimer
 {
 public:
-  ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, Timer timer);
+  ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk, uint8_t toie, Timer timer);
   
   const ticksExtraRange_t get();
 
@@ -48,8 +48,11 @@ public:
 private:
   volatile ticksExtraRange_t _overflowTicks = 0;
 
-  volatile ticks8_t *_tcntl;
-  volatile ticks8_t *_tcnth;
+  volatile uint8_t *_tcntl;
+  volatile uint8_t *_tcnth;
+
+  volatile uint8_t *_timsk;
+  uint8_t _toie;
 
   Timer _timer;
 };

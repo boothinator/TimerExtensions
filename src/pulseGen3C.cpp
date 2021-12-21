@@ -24,7 +24,7 @@
 
 #include "extTimer.h"
 
-PulseGen PulseGen3C(&OCR3CL, &OCR3CH, &TCCR3A, &TCCR3B, &TCCR3C, COM3C1, COM3C0, FOC3C, &ExtTimer3);
+PulseGen PulseGen3C(&OCR3CL, &OCR3CH, &TCCR3A, &TCCR3B, &TCCR3C, &TIMSK3, COM3C1, COM3C0, FOC3C, OCIE3C, &ExtTimer3);
 
 ISR(TIMER3_COMPC_vect)
 {

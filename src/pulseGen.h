@@ -26,8 +26,8 @@ public:
   typedef void (*stateChangeCallback_t)(PulseGen *pulse, void *data);
 
   PulseGen(volatile uint8_t *ocrl, volatile uint8_t *ocrh,
-    volatile uint8_t *tccra, volatile uint8_t *tccrb, volatile uint8_t *tccrc,
-    uint8_t com1, uint8_t com0, uint8_t foc, ExtTimer *tcnt);
+    volatile uint8_t *tccra, volatile uint8_t *tccrb, volatile uint8_t *tccrc, volatile uint8_t *timsk,
+    uint8_t com1, uint8_t com0, uint8_t foc, uint8_t ocie, ExtTimer *tcnt);
   
   bool setStart(ticksExtraRange_t start);
   bool setEnd(ticksExtraRange_t end);
@@ -54,9 +54,11 @@ private:
   volatile uint8_t *_tccra; // Timer/Counter Control Register A
   volatile uint8_t *_tccrb; // Timer/Counter Control Register B
   volatile uint8_t *_tccrc; // Timer/Counter Control Register C
+  volatile uint8_t *_timsk; // Timer/Counter Interrupt Mask Register
   uint8_t _com1;
   uint8_t _com0;
   uint8_t _foc;
+  uint8_t _ocie;
   ExtTimer *_tcnt;
 
   // TODO: prefix with underscore

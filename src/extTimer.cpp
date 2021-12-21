@@ -22,10 +22,12 @@
 
 #include "timerTypes.h"
 
-ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, Timer timer) :
-  _tcntl(tcntl), _tcnth(tcnth), _timer(timer)
+ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk, uint8_t toie, Timer timer) :
+  _tcntl(tcntl), _tcnth(tcnth), _timsk(timsk), _toie(toie), _timer(timer)
 {
   assert(tcntl);
+
+  *_timsk |= _BV(_toie);
 }
 
 const ticksExtraRange_t ExtTimer::get()

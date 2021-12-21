@@ -53,9 +53,14 @@ void test_pulse()
   uint16_t tcnt = 0;
   uint8_t *ptcntl = (uint8_t *)&tcnt;
   uint8_t *ptcnth = ptcntl + 1;
-  ExtTimer extTimer(ptcntl, ptcnth, Timer::Timer0);
+  uint8_t timsk;
+  uint8_t toie = 0;
+  uint8_t ocie = 1;
+  ExtTimer extTimer(ptcntl, ptcnth, &timsk, toie, Timer::Timer0);
 
-  PulseGen pulse(pocrl, pocrh, &tccra, &tccrb, &tccrc, com1, com0, foc, &extTimer);
+  TEST_ASSERT_BIT_HIGH(toie, timsk);
+
+  PulseGen pulse(pocrl, pocrh, &tccra, &tccrb, &tccrc, &timsk, com1, com0, foc, ocie, &extTimer);
   pulse.setStateChangeCallback(stateChangeCallback);
 
   unsigned long startTime, endTime;
@@ -86,6 +91,7 @@ void test_pulse()
   // We are in range, so PulseGen should be able to schedule the high state immediately
   TEST_ASSERT_BIT_HIGH(com1, tccra);
   TEST_ASSERT_BIT_HIGH(com0, tccra);
+  TEST_ASSERT_BIT_HIGH(ocie, timsk);
   TEST_ASSERT_EQUAL_UINT16(startTicks, ocr);
 
   // Verify that we can't update the start because we're too close to the start time
@@ -158,6 +164,7 @@ void test_pulse()
   // PulseGen should still be in previous low state
   TEST_ASSERT_BIT_HIGH(com1, tccra);
   TEST_ASSERT_BIT_LOW(com0, tccra);
+  TEST_ASSERT_BIT_LOW(ocie, timsk);
   TEST_ASSERT_EQUAL_UINT16(endTicks, ocr);
   TEST_ASSERT_EQUAL_UINT8(PulseGen::PulseState::Idle, pulse.getState());
 }
@@ -190,7 +197,7 @@ void test_pulse_real()
   PulseGen5A.setStateChangeCallback(stateChangeCallback);
 
   // Enable output compare interrupts
-  TIMSK5 |= _BV(OCIE5A) | _BV(TOIE5) | _BV(ICIE5);
+  TIMSK5 |= /*_BV(OCIE5A) | _BV(TOIE5) |*/ _BV(ICIE5);
 
   // Use clk/1024 prescaler and start timer
   TCCR5B |= (_BV(CS52) | _BV(CS50));

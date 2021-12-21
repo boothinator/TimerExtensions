@@ -24,7 +24,7 @@
 
 #include "extTimer.h"
 
-PulseGen PulseGen4A(&OCR4AL, &OCR4AH, &TCCR4A, &TCCR4B, &TCCR4C, COM4A1, COM4A0, FOC4A, &ExtTimer4);
+PulseGen PulseGen4A(&OCR4AL, &OCR4AH, &TCCR4A, &TCCR4B, &TCCR4C, &TIMSK4, COM4A1, COM4A0, FOC4A, OCIE4A, &ExtTimer4);
 
 ISR(TIMER4_COMPA_vect)
 {

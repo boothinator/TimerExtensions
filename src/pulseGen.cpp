@@ -75,11 +75,11 @@ constexpr ticks16_t getMinChangeTicks(uint8_t tccrb)
 } // namespace
 
 PulseGen::PulseGen(volatile uint8_t *ocrl, volatile uint8_t *ocrh,
-  volatile uint8_t *tccra, volatile uint8_t *tccrb, volatile uint8_t *tccrc,
-  uint8_t com1, uint8_t com0, uint8_t foc, ExtTimer *tcnt) :
+    volatile uint8_t *tccra, volatile uint8_t *tccrb, volatile uint8_t *tccrc, volatile uint8_t *timsk,
+    uint8_t com1, uint8_t com0, uint8_t foc, uint8_t ocie, ExtTimer *tcnt) :
     _ocrl(ocrl), _ocrh(ocrh),
-    _tccra(tccra), _tccrb(tccrb), _tccrc(tccrc),
-    _com1(com1), _com0(com0), _foc(foc), _tcnt(tcnt)
+    _tccra(tccra), _tccrb(tccrb), _tccrc(tccrc), _timsk(timsk),
+    _com1(com1), _com0(com0), _foc(foc), _ocie(ocie), _tcnt(tcnt)
 {
   assert(_ocrl && _tccra && _tccrb && _tccrc && _tcnt);
 }
@@ -127,7 +127,7 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
   {
 
     // Set to clear bit on compare
-    // Ensure that whole register gets set at the same time (TODO: does the compiler actually do this correctly?)
+    // Ensure that whole register gets set at the same time
     uint8_t tmp = (*_tccra | _BV(_com1)) & ~_BV(_com0);
     *_tccra = tmp;
 
@@ -138,6 +138,9 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
     // but give us plenty of time to schedule by checking
     // UINT16_MAX - 1 ticks before the event
     setOcr(((ticks16_t) _start) + 1);
+
+    // Enable OCR interrupt
+    *_timsk |= _BV(_ocie);
 
     _pulseState = PulseState::WaitingToScheduleHigh;
     if (_cb)
@@ -212,6 +215,10 @@ void PulseGen::updateState()
   {
     // Right now low state == end state, so go idle when we're scheduled low and get a compare event
     _pulseState = PulseState::Idle;
+    
+    // Disable OCR interrupt
+    *_timsk &= ~_BV(_ocie);
+
     if (_cb)
     {
       _cb(this, const_cast<void *>(_cbData));

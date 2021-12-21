@@ -24,7 +24,7 @@
 
 #include "extTimer.h"
 
-PulseGen PulseGen5A(&OCR5AL, &OCR5AH, &TCCR5A, &TCCR5B, &TCCR5C, COM5A1, COM5A0, FOC5A, &ExtTimer5);
+PulseGen PulseGen5A(&OCR5AL, &OCR5AH, &TCCR5A, &TCCR5B, &TCCR5C, &TIMSK5, COM5A1, COM5A0, FOC5A, OCIE5A, &ExtTimer5);
 
 ISR(TIMER5_COMPA_vect)
 {
