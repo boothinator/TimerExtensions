@@ -21,6 +21,8 @@
 
 #include "timerTypes.h"
 
+#include <Arduino.h>
+
 // Only allow setStart() and setEnd() if we are this many CPU cycles ahead of the new time
 #ifndef MIN_PULSE_CHANGE_CYCLES
 #define MIN_PULSE_CHANGE_CYCLES 256
@@ -34,6 +36,10 @@ namespace {
 
 static bool ticksInRangeExclusive(ticksExtraRange_t ticks, ticksExtraRange_t start, ticksExtraRange_t end)
 {
+  /*Serial.println("ticksInRangeExclusive");
+  Serial.println(ticks);
+  Serial.println(start);
+  Serial.println(end);*/
   if (start < end)
   {
     return start < ticks && ticks < end;

@@ -25,10 +25,10 @@
 
 ExtTimer ExtTimer0(&TCNT0, nullptr);
 
-ISR(TIMER0_OVF_vect)
+/*ISR(TIMER0_OVF_vect)
 {
   ExtTimer0.processOverflow();
-}
+}*/
 
 #endif // HAVE_TCNT0
 
