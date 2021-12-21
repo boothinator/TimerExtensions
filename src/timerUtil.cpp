@@ -16,8 +16,9 @@
 
 #include "timerUtil.h"
 
-#include "avr/interrupt.h"
-#include "assert.h"
+#include <avr/interrupt.h>
+#include <assert.h>
+#include <stdint.h>
 
 namespace {
 
@@ -27,12 +28,18 @@ volatile uint8_t *getTimerTCCRA(Timer timer)
   {
     case Timer::Timer1:
       return &TCCR1A;
+#ifdef TCCR3A
     case Timer::Timer3:
       return &TCCR3A;
+#endif
+#ifdef TCCR4A
     case Timer::Timer4:
       return &TCCR4A;
+#endif
+#ifdef TCCR5A
     case Timer::Timer5:
       return &TCCR5A;
+#endif
     default:
       return nullptr;
   }
@@ -44,12 +51,18 @@ volatile uint8_t *getTimerTCCRB(Timer timer)
   {
     case Timer::Timer1:
       return &TCCR1B;
+#ifdef TCCR3A
     case Timer::Timer3:
       return &TCCR3B;
+#endif
+#ifdef TCCR4A
     case Timer::Timer4:
       return &TCCR4B;
+#endif
+#ifdef TCCR5A
     case Timer::Timer5:
       return &TCCR5B;
+#endif
     default:
       return nullptr;
   }
@@ -86,4 +99,26 @@ void configureTimerMode(Timer timer, TimerMode mode)
       *TCCRA = (*TCCRA & 0b11111100);
       *TCCRB = (*TCCRB & 0b11000111);
   }
+}
+
+
+TimerConfig getTimerConfig(Timer timer)
+{
+  return {
+    *getTimerTCCRA(timer),
+    *getTimerTCCRB(timer)
+  };
+}
+
+void restoreTimerConfig(Timer timer, TimerConfig config)
+{
+
+  volatile uint8_t *ptccra = getTimerTCCRA(timer);
+  volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  uint8_t tccraVal = (*ptccra & 0b11111100) | (config.tccra & 0b00000011);
+  uint8_t tccrbVal = config.tccrb;
+
+  *ptccra = tccraVal;
+  *ptccrb = tccrbVal;
 }
