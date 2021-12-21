@@ -87,20 +87,27 @@ const ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks)
 
 const ticks16_t ExtTimer::getSysRange()
 {
-  char prevSREG = SREG;
-  cli();
-
-  ticksExtraRange_t tmp = *_tcntl;
-
-  // Follow correct 16-bit register access rules by loading the low register first
   if (_tcnth)
   {
-    tmp += (*_tcnth) << 8;
+    // 16-bit counter
+    ticks16_t low, high;
+
+    char prevSREG = SREG;
+    cli();
+
+    // Follow correct 16-bit register access rules by loading the low register first
+    low = *_tcntl;
+    high = *_tcnth;
+
+    SREG = prevSREG; // restore interrupt state of the caller
+
+    return low + (high << 8);
   }
-
-  SREG = prevSREG; // restore interrupt state of the caller
-
-  return tmp;
+  else
+  {
+    // 8-bit counter
+    return *_tcntl;
+  }
 }
 
 const uint16_t ExtTimer::getOverflowCount()
