@@ -24,7 +24,6 @@
 class ExtTimer
 {
 public:
-// FIXME: use TCNTL and TCNTH so we ensure we get/set the register properly
   ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth);
   
   const ticksExtraRange_t get();
