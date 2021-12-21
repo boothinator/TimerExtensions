@@ -83,4 +83,97 @@ private:
   void updateState();
 };
 
+#ifdef HAVE_TCNT0
+
+extern PulseGen PulseGen0A;
+extern PulseGen PulseGen0B;
+
+#endif // HAVE_TCNT0
+
+#ifdef HAVE_TCNT1
+
+extern PulseGen PulseGen1A;
+extern PulseGen PulseGen1B;
+#ifdef OCR1C
+extern PulseGen PulseGen1C;
+#endif // OCR1C
+
+#endif // HAVE_TCNT1
+
+#ifdef HAVE_TCNT2
+
+extern PulseGen PulseGen2A;
+extern PulseGen PulseGen2B;
+
+#endif // HAVE_TCNT2
+
+#ifdef HAVE_TCNT3
+
+extern PulseGen PulseGen3A;
+extern PulseGen PulseGen3B;
+extern PulseGen PulseGen3C;
+
+#endif // HAVE_TCNT3
+
+#ifdef HAVE_TCNT4
+
+extern PulseGen PulseGen4A;
+extern PulseGen PulseGen4B;
+extern PulseGen PulseGen4C;
+
+#endif // HAVE_TCNT4
+
+#ifdef HAVE_TCNT5
+
+extern PulseGen PulseGen5A;
+extern PulseGen PulseGen5B;
+extern PulseGen PulseGen5C;
+
+#endif // HAVE_TCNT5
+
+
+
+#ifdef ARDUINO_AVR_UNO
+
+#define PulseGenPin6 PulseGen0A
+#define PulseGenPin5 PulseGen0B
+
+#define PulseGenPin9 PulseGen1A
+#define PulseGenPin10 PulseGen1B
+
+#define PulseGenPin11 PulseGen2A
+#define PulseGenPin3 PulseGen2B
+
+#endif // ARDUINO_AVR_UNO
+
+
+
+#ifdef ARDUINO_AVR_MEGA2560
+
+#define PulseGenPin13Timer0 PulseGen0A
+#define PulseGenPin4 PulseGen0B
+
+#define PulseGenPin11 PulseGen1A
+#define PulseGenPin12 PulseGen1B
+#define PulseGenPin13Timer1 PulseGen1C
+
+#define PulseGenPin10 PulseGen2A
+#define PulseGenPin9 PulseGen2B
+
+#define PulseGenPin5 PulseGen3A
+#define PulseGenPin2 PulseGen3B
+#define PulseGenPin3 PulseGen3C
+
+#define PulseGenPin6 PulseGen4A
+#define PulseGenPin7 PulseGen4B
+#define PulseGenPin8 PulseGen4C
+
+#define PulseGenPin46 PulseGen5A
+#define PulseGenPin45 PulseGen5B
+#define PulseGenPin44 PulseGen5C
+
+#endif // ARDUINO_AVR_MEGA2560
+
+
+
 #endif // TIMER_EXT_PULSE_H_
