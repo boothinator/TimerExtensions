@@ -17,8 +17,6 @@
 #ifndef TIMER_EXT_EXT_COMP_H_
 #define TIMER_EXT_EXT_COMP_H_
 
-#include <Arduino.h>
-
 #include "timerTypes.h"
 #include "extTimer.h"
 

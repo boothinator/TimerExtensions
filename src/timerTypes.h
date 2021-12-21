@@ -17,7 +17,7 @@
 #ifndef TIMER_EXT_TIMER_TYPES_H_
 #define TIMER_EXT_TIMER_TYPES_H_
 
-#include <Arduino.h>
+#include <stdint.h>
 
 typedef uint8_t  ticks8_t;
 typedef uint16_t ticks16_t;

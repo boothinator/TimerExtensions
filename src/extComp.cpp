@@ -16,6 +16,9 @@
 
 #include "extComp.h"
 
+#include "avr/interrupt.h"
+#include "assert.h"
+
 ExtComp::ExtComp(ExtTimer *timer) 
 {
   _timer = timer;
@@ -24,7 +27,7 @@ ExtComp::ExtComp(ExtTimer *timer)
 void ExtComp::scheduleEvent(ticksExtraRange_t ticks, callback_t cb)
 {
   char prevSREG = SREG;
-  noInterrupts();
+  cli();
 
   _ticks = ticks;
   _cb = cb;

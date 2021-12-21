@@ -17,9 +17,8 @@
 #ifndef TIMER_EXT_PULSE_H_
 #define TIMER_EXT_PULSE_H_
 
-#include <Arduino.h>
-
 #include "extTimer.h"
+#include "timerTypes.h"
 
 const int minPulseChangeCycles = 256;
 

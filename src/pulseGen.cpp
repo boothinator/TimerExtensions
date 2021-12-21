@@ -16,9 +16,13 @@
 
 #include "pulseGen.h"
 
+#include "avr/interrupt.h"
 #include "assert.h"
 
 #include "timerTypes.h"
+
+#define HIGH 0x1
+#define LOW  0x0
 
 static bool ticksInRangeExclusive(ticksExtraRange_t ticks, ticksExtraRange_t start, ticksExtraRange_t end)
 {
@@ -69,7 +73,7 @@ bool PulseGen::setStart(ticksExtraRange_t _start)
   }
 
   char prevSREG = SREG;
-  noInterrupts();
+  cli();
 
   this->start = _start;
 
@@ -93,7 +97,7 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
   }
 
   char prevSREG = SREG;
-  noInterrupts();
+  cli();
 
   this->end = _end;
 
@@ -249,7 +253,7 @@ const PulseGen::PulseState PulseGen::getState()
 void PulseGen::setStateChangeCallback(stateChangeCallback_t _cb, const void *_cbData)
 {
   char prevSREG = SREG;
-  noInterrupts();
+  cli();
 
   this->cb = _cb;
   this->cbData = _cbData;

@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Lesser Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 #include "extTimer.h"
 
+#include "avr/interrupt.h"
 #include "assert.h"
 
 #include "timerTypes.h"
@@ -86,7 +88,7 @@ const ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks)
 const ticks16_t ExtTimer::getSysRange()
 {
   char prevSREG = SREG;
-  noInterrupts();
+  cli();
 
   ticksExtraRange_t tmp = *_tcntl;
 
@@ -104,7 +106,7 @@ const ticks16_t ExtTimer::getSysRange()
 const uint16_t ExtTimer::getOverflowCount()
 {
   char prevSREG = SREG;
-  noInterrupts();
+  cli();
 
   ticksExtraRange_t tmp = _overflowTicks;
 
@@ -127,7 +129,7 @@ const uint16_t ExtTimer::getOverflowCount()
 void ExtTimer::resetOverflowCount()
 {
   char prevSREG = SREG;
-  noInterrupts();
+  cli();
 
   _overflowTicks = 0;
 

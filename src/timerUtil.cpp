@@ -16,6 +16,9 @@
 
 #include "timerUtil.h"
 
+#include "avr/interrupt.h"
+#include "assert.h"
+
 namespace {
 
 volatile uint8_t *getTimerTCCRA(Timer timer)

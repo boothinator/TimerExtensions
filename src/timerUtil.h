@@ -17,8 +17,6 @@
 #ifndef TIMER_EXT_TIMER_UTIL_H_
 #define TIMER_EXT_TIMER_UTIL_H_
 
-#include <Arduino.h>
-
 enum class Timer {Timer0, Timer1, Timer2, Timer3, Timer4, Timer5}; // TODO: Implement 8-bit timers
 
 enum class TimerClock { None, Clk, ClkDiv8 /* TODO: implement others*/ };
