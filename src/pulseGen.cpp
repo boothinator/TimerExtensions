@@ -63,7 +63,7 @@ constexpr ticks16_t minChangeTicks[8] = {
 
 constexpr ticks16_t getMinChangeTicks(uint8_t tccrb)
 {
-  return minChangeTicks[tccrb & 0b00000111];
+  return minChangeTicks[tccrb & 0b00000111] + 1;
 }
 
 } // namespace
