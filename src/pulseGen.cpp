@@ -21,9 +21,6 @@
 
 #include "timerTypes.h"
 
-#define HIGH 0x1
-#define LOW  0x0
-
 // Only allow setStart() and setEnd() if we are this many CPU cycles ahead of the new time
 #ifndef MIN_PULSE_CHANGE_CYCLES
 #define MIN_PULSE_CHANGE_CYCLES 256
@@ -71,15 +68,14 @@ constexpr ticks16_t getMinChangeTicks(uint8_t tccrb)
 
 } // namespace
 
-PulseGen::PulseGen(volatile uint8_t *pinReg, volatile uint8_t *ddr,
-  volatile uint8_t *ocrl, volatile uint8_t *ocrh,
+PulseGen::PulseGen(volatile uint8_t *ocrl, volatile uint8_t *ocrh,
   volatile uint8_t *tccra, volatile uint8_t *tccrb, volatile uint8_t *tccrc,
-  uint8_t pinBit, uint8_t ddBit, uint8_t com1, uint8_t com0, uint8_t foc, ExtTimer *tcnt) :
-    _pinReg(pinReg), _ddr(ddr), _ocrl(ocrl), _ocrh(ocrh),
+  uint8_t com1, uint8_t com0, uint8_t foc, ExtTimer *tcnt) :
+    _ocrl(ocrl), _ocrh(ocrh),
     _tccra(tccra), _tccrb(tccrb), _tccrc(tccrc),
-    _pinBit(pinBit), _ddBit(ddBit), _com1(com1), _com0(com0), _foc(foc), _tcnt(tcnt)
+    _com1(com1), _com0(com0), _foc(foc), _tcnt(tcnt)
 {
-  assert(_pinReg && _ddr && _ocrl && _tccra && _tccrb && _tccrc && _tcnt);
+  assert(_ocrl && _tccra && _tccrb && _tccrc && _tcnt);
 }
 
 bool PulseGen::setStart(ticksExtraRange_t _start)
@@ -131,9 +127,6 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
 
     // Force output compare to ensure it's low
     *_tccrc |= _BV(_foc);
-
-    // Make pin output
-    *_ddr |= _BV(_ddBit);
 
     // Use the compare interrupt to check if it's time to schedule,
     // but give us plenty of time to schedule by checking
@@ -250,18 +243,6 @@ void PulseGen::scheduleLowState()
   }
 }
 
-const uint8_t PulseGen::getPinState()
-{
-	if (*_pinReg & _BV(_pinBit))
-  {
-    return HIGH;
-  }
-  else
-  {
-	  return LOW;
-  }
-}
-
 // Critical section not needed because PulseState is a single byte
 // and can be retrieved with a single instruction
 const PulseGen::PulseState PulseGen::getState()
@@ -288,7 +269,7 @@ bool PulseGen::cancel()
   }
 
   // Can't cancel if pulse has started
-  if (getPinState() == HIGH)
+  if (pulseHasStarted())
   {
     return false;
   }
@@ -343,6 +324,11 @@ const bool PulseGen::hasTimeToUpdate(ticksExtraRange_t curTicksSetting)
   {
     return true;
   }
+}
+
+const bool PulseGen::pulseHasStarted()
+{
+  return ticksInRangeExclusive(_tcnt->get(), _start, _end);
 }
 
 void PulseGen::setOcr(ticks16_t val)

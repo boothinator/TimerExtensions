@@ -25,18 +25,15 @@ class PulseGen
 public:
   typedef void (*stateChangeCallback_t)(PulseGen *pulse, void *data);
 
-  PulseGen(volatile uint8_t *pinReg, volatile uint8_t *ddr,
-    volatile uint8_t *ocrl, volatile uint8_t *ocrh,
+  PulseGen(volatile uint8_t *ocrl, volatile uint8_t *ocrh,
     volatile uint8_t *tccra, volatile uint8_t *tccrb, volatile uint8_t *tccrc,
-    uint8_t pinBit, uint8_t ddBit, uint8_t com1, uint8_t com0, uint8_t foc, ExtTimer *tcnt);
+    uint8_t com1, uint8_t com0, uint8_t foc, ExtTimer *tcnt);
   
   bool setStart(ticksExtraRange_t start);
   bool setEnd(ticksExtraRange_t end);
 
   const ticksExtraRange_t getStart();
   const ticksExtraRange_t getEnd();
-
-  const uint8_t getPinState(); // HIGH or LOW
 
   bool cancel();
 
@@ -49,15 +46,11 @@ public:
   void setStateChangeCallback(stateChangeCallback_t _cb, const void *_cbData = nullptr);
 
 private:
-  volatile uint8_t *_pinReg; // Port Input Register
-  volatile uint8_t *_ddr; // Data Direction Register
   volatile uint8_t *_ocrl; // Output Compare Register Low
   volatile uint8_t *_ocrh; // Output Compare Register High
   volatile uint8_t *_tccra; // Timer/Counter Control Register A
   volatile uint8_t *_tccrb; // Timer/Counter Control Register B
   volatile uint8_t *_tccrc; // Timer/Counter Control Register C
-  uint8_t _pinBit; // Port Input Register bit
-  uint8_t _ddBit; // Data Direction Register bit
   uint8_t _com1;
   uint8_t _com0;
   uint8_t _foc;
@@ -77,6 +70,7 @@ private:
 
   const bool ticksInScheduleRange(ticksExtraRange_t ticks);
   const bool hasTimeToUpdate(ticksExtraRange_t ticks);
+  const bool PulseGen::pulseHasStarted();
 
   void updateState();
 
