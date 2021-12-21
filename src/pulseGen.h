@@ -20,17 +20,15 @@
 #include "extTimer.h"
 #include "timerTypes.h"
 
-const int minPulseChangeCycles = 256;
-
 class PulseGen
 {
 public:
   typedef void (*stateChangeCallback_t)(PulseGen *pulse, void *data);
 
-  PulseGen(volatile uint8_t *_pinReg, volatile uint8_t *_ddr,
-    volatile uint16_t *_ocr, volatile uint8_t *_tccra, volatile uint8_t *_tccrc,
-    uint8_t _pinBit, uint8_t _ddBit, uint8_t _com1, uint8_t _com0, uint8_t _foc,
-    uint16_t prescalerDivisor, ExtTimer *_tcnt, stateChangeCallback_t _cb = nullptr, void *_cbData = nullptr);
+  PulseGen(volatile uint8_t *pinReg, volatile uint8_t *ddr,
+    volatile uint8_t *ocrl, volatile uint8_t *ocrh,
+    volatile uint8_t *tccra, volatile uint8_t *tccrb, volatile uint8_t *tccrc,
+    uint8_t pinBit, uint8_t ddBit, uint8_t com1, uint8_t com0, uint8_t foc, ExtTimer *tcnt);
   
   bool setStart(ticksExtraRange_t start);
   bool setEnd(ticksExtraRange_t end);
@@ -51,28 +49,28 @@ public:
   void setStateChangeCallback(stateChangeCallback_t _cb, const void *_cbData = nullptr);
 
 private:
-  // TODO: templatize these
-  volatile uint8_t *pinReg; // Port Input Register
-  volatile uint8_t *ddr; // Data Direction Register
-  volatile uint16_t *ocr; // Output Compare Register
-  volatile uint8_t *tccra;
-  volatile uint8_t *tccrc;
-  uint8_t pinBit; // Port Input Register bit
-  uint8_t ddBit; // Data Direction Register bit
-  uint8_t com1;
-  uint8_t com0;
-  uint8_t foc;
-  ExtTimer *tcnt;
+  volatile uint8_t *_pinReg; // Port Input Register
+  volatile uint8_t *_ddr; // Data Direction Register
+  volatile uint8_t *_ocrl; // Output Compare Register Low
+  volatile uint8_t *_ocrh; // Output Compare Register High
+  volatile uint8_t *_tccra; // Timer/Counter Control Register A
+  volatile uint8_t *_tccrb; // Timer/Counter Control Register B
+  volatile uint8_t *_tccrc; // Timer/Counter Control Register C
+  uint8_t _pinBit; // Port Input Register bit
+  uint8_t _ddBit; // Data Direction Register bit
+  uint8_t _com1;
+  uint8_t _com0;
+  uint8_t _foc;
+  ExtTimer *_tcnt;
 
   // TODO: prefix with underscore
-  ticks16_t minChangeTicks; // Min number of ticks to update a timer value or cancel the pulse
-  volatile PulseState pulseState = PulseState::Idle;
-  stateChangeCallback_t cb = nullptr;
-  const void *cbData = nullptr;
+  volatile PulseState _pulseState = PulseState::Idle;
+  stateChangeCallback_t _cb = nullptr;
+  const void *_cbData = nullptr;
 
   // TODO: prefix with underscore
-  volatile ticksExtraRange_t start;
-  volatile ticksExtraRange_t end;
+  volatile ticksExtraRange_t _start;
+  volatile ticksExtraRange_t _end;
 
   void scheduleHighState();
   void scheduleLowState();
@@ -81,6 +79,8 @@ private:
   const bool hasTimeToUpdate(ticksExtraRange_t ticks);
 
   void updateState();
+
+  void setOcr(ticks16_t val);
 };
 
 #ifdef HAVE_TCNT0

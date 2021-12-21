@@ -24,6 +24,17 @@
 #define HIGH 0x1
 #define LOW  0x0
 
+// Only allow setStart() and setEnd() if we are this many CPU cycles ahead of the new time
+#ifndef MIN_PULSE_CHANGE_CYCLES
+#define MIN_PULSE_CHANGE_CYCLES 256
+#endif // MIN_PULSE_CHANGE_CYCLES
+
+#ifndef EXTERNAL_CLOCK_FREQUENCY
+#define EXTERNAL_CLOCK_FREQUENCY F_CPU
+#endif // EXTERNAL_CLOCK_FREQUENCY
+
+namespace {
+
 static bool ticksInRangeExclusive(ticksExtraRange_t ticks, ticksExtraRange_t start, ticksExtraRange_t end)
 {
   if (start < end)
@@ -38,36 +49,44 @@ static bool ticksInRangeExclusive(ticksExtraRange_t ticks, ticksExtraRange_t sta
   }
 }
 
-PulseGen::PulseGen(volatile uint8_t *_pinReg, volatile uint8_t *_ddr,
-    volatile uint16_t *_ocr, volatile uint8_t *_tccra, volatile uint8_t *_tccrc,
-    uint8_t _pinBit, uint8_t _ddBit, uint8_t _com1, uint8_t _com0, uint8_t _foc,
-    uint16_t prescalerDivisor, ExtTimer *_tcnt, stateChangeCallback_t _cb, void *_cbData)
+constexpr ticks16_t extClockMinPulseChangeCycles =
+ (ticks16_t)((uint64_t)MIN_PULSE_CHANGE_CYCLES * EXTERNAL_CLOCK_FREQUENCY) / F_CPU;
+
+// Corresponds to the 3 clock select bits (CS02:0)
+constexpr ticks16_t minChangeTicks[8] = {
+  0, // No clock source
+  MIN_PULSE_CHANGE_CYCLES / 1,    // No prescaler
+  MIN_PULSE_CHANGE_CYCLES / 8,    // clk/8
+  MIN_PULSE_CHANGE_CYCLES / 64,   // clk/64
+  MIN_PULSE_CHANGE_CYCLES / 256,  // clk/256
+  MIN_PULSE_CHANGE_CYCLES / 1024, // clk/1024
+  extClockMinPulseChangeCycles,   // External clock
+  extClockMinPulseChangeCycles    // External clock
+};
+
+constexpr ticks16_t getMinChangeTicks(uint8_t tccrb)
 {
-  assert(_pinReg && _ddr && _ocr && _tccra && _tccrc && prescalerDivisor && _tcnt);
+  return minChangeTicks[tccrb & 0b00000111];
+}
 
-  this->pinReg = _pinReg;
-  this->ddr = _ddr;
-  this->ocr = _ocr;
-  this->tccra = _tccra;
-  this->tccrc = _tccrc;
-  this->pinBit = _pinBit;
-  this->ddBit = _ddBit;
-  this->com1 = _com1;
-  this->com0 = _com0;
-  this->foc = _foc;
-  this->tcnt = _tcnt;
+} // namespace
 
-  minChangeTicks = minPulseChangeCycles / prescalerDivisor;
-  
-  this->cb = _cb;
-  this->cbData = _cbData;
+PulseGen::PulseGen(volatile uint8_t *pinReg, volatile uint8_t *ddr,
+  volatile uint8_t *ocrl, volatile uint8_t *ocrh,
+  volatile uint8_t *tccra, volatile uint8_t *tccrb, volatile uint8_t *tccrc,
+  uint8_t pinBit, uint8_t ddBit, uint8_t com1, uint8_t com0, uint8_t foc, ExtTimer *tcnt) :
+    _pinReg(pinReg), _ddr(ddr), _ocrl(ocrl), _ocrh(ocrh),
+    _tccra(tccra), _tccrb(tccrb), _tccrc(tccrc),
+    _pinBit(pinBit), _ddBit(ddBit), _com1(com1), _com0(com0), _foc(foc), _tcnt(tcnt)
+{
+  assert(_pinReg && _ddr && _ocrl && _tccra && _tccrb && _tccrc && _tcnt);
 }
 
 bool PulseGen::setStart(ticksExtraRange_t _start)
 {
   // Not enough time to update, or we've already gone high
-  if ((PulseState::WaitingToScheduleHigh == pulseState || PulseState::ScheduledHigh == pulseState)
-    && hasTimeToUpdate(start) == false)
+  if ((PulseState::WaitingToScheduleHigh == _pulseState || PulseState::ScheduledHigh == _pulseState)
+    && hasTimeToUpdate(_start) == false)
   {
     return false;
   }
@@ -75,7 +94,7 @@ bool PulseGen::setStart(ticksExtraRange_t _start)
   char prevSREG = SREG;
   cli();
 
-  this->start = _start;
+  this->_start = _start;
 
   SREG = prevSREG; // restore interrupt state of the caller
 
@@ -85,13 +104,13 @@ bool PulseGen::setStart(ticksExtraRange_t _start)
 bool PulseGen::setEnd(ticksExtraRange_t _end)
 {
   // Not enough time to update
-  if (hasTimeToUpdate(end) == false)
+  if (hasTimeToUpdate(_end) == false)
   {
     return false;
   }
 
   // Can't respond to interrupt fast enough to schedule the end time
-  if ((_end - start) < minChangeTicks)
+  if ((_end - _start) < getMinChangeTicks(*_tccrb))
   {
     return false;
   }
@@ -99,32 +118,32 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
   char prevSREG = SREG;
   cli();
 
-  this->end = _end;
+  this->_end = _end;
 
   // Only change state if idle
-  if (PulseState::Idle == pulseState)
+  if (PulseState::Idle == _pulseState)
   {
 
     // Set to clear bit on compare
     // Ensure that whole register gets set at the same time (TODO: does the compiler actually do this correctly?)
-    uint8_t tmp = (*tccra | _BV(com1)) & ~_BV(com0);
-    *tccra = tmp;
+    uint8_t tmp = (*_tccra | _BV(_com1)) & ~_BV(_com0);
+    *_tccra = tmp;
 
     // Force output compare to ensure it's low
-    *tccrc |= _BV(foc);
+    *_tccrc |= _BV(_foc);
 
     // Make pin output
-    *ddr |= _BV(ddBit);
+    *_ddr |= _BV(_ddBit);
 
     // Use the compare interrupt to check if it's time to schedule,
     // but give us plenty of time to schedule by checking
     // UINT16_MAX - 1 ticks before the event
-    *ocr = ((ticks16_t) start) + 1;
+    setOcr(((ticks16_t) _start) + 1);
 
-    pulseState = PulseState::WaitingToScheduleHigh;
-    if (cb)
+    _pulseState = PulseState::WaitingToScheduleHigh;
+    if (_cb)
     {
-      cb(this, const_cast<void *>(cbData));
+      _cb(this, const_cast<void *>(_cbData));
     }
 
     updateState();
@@ -137,12 +156,12 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
 
 const ticksExtraRange_t PulseGen::getStart()
 {
-  return start;
+  return _start;
 }
 
 const ticksExtraRange_t PulseGen::getEnd()
 {
-  return end;
+  return _end;
 }
 
 // Only called from ISR (except for testing)
@@ -154,49 +173,49 @@ void PulseGen::processCompareEvent()
 // Must be called from ISR or in critical section
 void PulseGen::updateState()
 {
-  if (PulseState::Idle == pulseState)
+  if (PulseState::Idle == _pulseState)
   {
     // Don't use this function to transition from Idle to other states
   }
-  else if (PulseState::WaitingToScheduleHigh == pulseState)
+  else if (PulseState::WaitingToScheduleHigh == _pulseState)
   {
-    if (ticksInScheduleRange(start))
+    if (ticksInScheduleRange(_start))
     {
       scheduleHighState();
     }
   }
-  else if (PulseState::ScheduledHigh == pulseState)
+  else if (PulseState::ScheduledHigh == _pulseState)
   {
     // Use the compare interrupt to check if it's time to schedule,
     // but give us plenty of time to schedule by checking
     // UINT16_MAX - 1 ticks before the event
-    *ocr = ((ticks16_t)end) + 1;
+    setOcr(((ticks16_t)_end) + 1);
 
-    pulseState = PulseState::WaitingToScheduleLow;
-    if (cb)
+    _pulseState = PulseState::WaitingToScheduleLow;
+    if (_cb)
     {
-      cb(this, const_cast<void *>(cbData));
+      _cb(this, const_cast<void *>(_cbData));
     }
 
-    if (ticksInScheduleRange(end))
+    if (ticksInScheduleRange(_end))
     {
       scheduleLowState();
     }
   }
-  else if (PulseState::WaitingToScheduleLow == pulseState)
+  else if (PulseState::WaitingToScheduleLow == _pulseState)
   {
-    if (ticksInScheduleRange(end))
+    if (ticksInScheduleRange(_end))
     {
       scheduleLowState();
     }
   }
-  else if (PulseState::ScheduledLow == pulseState)
+  else if (PulseState::ScheduledLow == _pulseState)
   {
     // Right now low state == end state, so go idle when we're scheduled low and get a compare event
-    pulseState = PulseState::Idle;
-    if (cb)
+    _pulseState = PulseState::Idle;
+    if (_cb)
     {
-      cb(this, const_cast<void *>(cbData));
+      _cb(this, const_cast<void *>(_cbData));
     }
   }
 }
@@ -204,36 +223,36 @@ void PulseGen::updateState()
 // Must be called from ISR or in critical section
 void PulseGen::scheduleHighState()
 {
-  *ocr = (ticks16_t) start;
+  setOcr((ticks16_t) _start);
 
   // Set bit on compare match
-  *tccra |= _BV(com0);
+  *_tccra |= _BV(_com0);
 
-  pulseState = PulseState::ScheduledHigh;
-  if (cb)
+  _pulseState = PulseState::ScheduledHigh;
+  if (_cb)
   {
-    cb(this, const_cast<void *>(cbData));
+    _cb(this, const_cast<void *>(_cbData));
   }
 }
 
 // Must be called from ISR or in critical section
 void PulseGen::scheduleLowState()
 {
-  *ocr = (ticks16_t) end;
+  setOcr((ticks16_t) _end);
 
   // Clear bit on compare match
-  *tccra &= ~_BV(com0);
+  *_tccra &= ~_BV(_com0);
 
-  pulseState = PulseState::ScheduledLow;
-  if (cb)
+  _pulseState = PulseState::ScheduledLow;
+  if (_cb)
   {
-    cb(this, const_cast<void *>(cbData));
+    _cb(this, const_cast<void *>(_cbData));
   }
 }
 
 const uint8_t PulseGen::getPinState()
 {
-	if (*pinReg & _BV(pinBit))
+	if (*_pinReg & _BV(_pinBit))
   {
     return HIGH;
   }
@@ -247,7 +266,7 @@ const uint8_t PulseGen::getPinState()
 // and can be retrieved with a single instruction
 const PulseGen::PulseState PulseGen::getState()
 {
-  return pulseState;
+  return _pulseState;
 }
 
 void PulseGen::setStateChangeCallback(stateChangeCallback_t _cb, const void *_cbData)
@@ -255,8 +274,8 @@ void PulseGen::setStateChangeCallback(stateChangeCallback_t _cb, const void *_cb
   char prevSREG = SREG;
   cli();
 
-  this->cb = _cb;
-  this->cbData = _cbData;
+  this->_cb = _cb;
+  this->_cbData = _cbData;
 
   SREG = prevSREG; // restore interrupt state of the caller
 }
@@ -264,7 +283,7 @@ void PulseGen::setStateChangeCallback(stateChangeCallback_t _cb, const void *_cb
 bool PulseGen::cancel()
 {
   // Already idle?
-  if (PulseState::Idle == pulseState) {
+  if (PulseState::Idle == _pulseState) {
     return true;
   }
 
@@ -274,15 +293,15 @@ bool PulseGen::cancel()
     return false;
   }
 
-  if (hasTimeToUpdate(start))
+  if (hasTimeToUpdate(_start))
   {
     // Clear bit on compare match
-    *tccra &= ~_BV(com0);
+    *_tccra &= ~_BV(_com0);
   
-    pulseState = PulseState::Idle;
-    if (cb)
+    _pulseState = PulseState::Idle;
+    if (_cb)
     {
-      cb(this, const_cast<void *>(cbData));
+      _cb(this, const_cast<void *>(_cbData));
     }
     return true;
   }
@@ -295,8 +314,19 @@ bool PulseGen::cancel()
 
 const bool PulseGen::ticksInScheduleRange(ticksExtraRange_t ticks)
 {
-  ticksExtraRange_t curTcnt = tcnt->get();
-  ticksExtraRange_t firstTcntAfterRangeEnd = curTcnt + (1UL << 16);
+  ticksExtraRange_t curTcnt = _tcnt->get();
+  ticksExtraRange_t firstTcntAfterRangeEnd;
+
+  if (_ocrh)
+  {
+    // 16-bit
+    firstTcntAfterRangeEnd = curTcnt + (1UL << 16);
+  }
+  else
+  {
+    // 8-bit
+    firstTcntAfterRangeEnd = curTcnt + (1UL << 8);
+  }
 
   return ticksInRangeExclusive(ticks, curTcnt, firstTcntAfterRangeEnd);
 }
@@ -304,7 +334,7 @@ const bool PulseGen::ticksInScheduleRange(ticksExtraRange_t ticks)
 
 const bool PulseGen::hasTimeToUpdate(ticksExtraRange_t curTicksSetting)
 {
-  if (ticksInRangeExclusive(tcnt->get(), curTicksSetting - minChangeTicks, curTicksSetting))
+  if (ticksInRangeExclusive(_tcnt->get(), curTicksSetting - getMinChangeTicks(*_tccrb), curTicksSetting))
   {
     // Not enough time to update
     return false;
@@ -313,4 +343,31 @@ const bool PulseGen::hasTimeToUpdate(ticksExtraRange_t curTicksSetting)
   {
     return true;
   }
+}
+
+void PulseGen::setOcr(ticks16_t val)
+{
+  if (_ocrh)
+  {
+    // 16-bit timer
+
+    uint8_t high = static_cast<uint8_t>(val >> 8);
+    uint8_t low = static_cast<uint8_t>(val);
+
+    // Not needed: setOcr() is only called from critical sections
+    //char prevSREG = SREG;
+    //cli();
+    
+    // Follow correct 16-bit register access rules by storing the high register first
+    *_ocrh = high;
+    *_ocrl = low;
+
+    //SREG = prevSREG; // restore interrupt state of the caller
+  }
+  else
+  {
+    // 8-bit timer
+    *_ocrl = static_cast<uint8_t>(val);
+  }
+  
 }
