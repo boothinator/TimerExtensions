@@ -70,7 +70,7 @@ private:
 
   const bool ticksInScheduleRange(ticksExtraRange_t ticks);
   const bool hasTimeToUpdate(ticksExtraRange_t ticks);
-  const bool PulseGen::pulseHasStarted();
+  const bool pulseHasStarted();
 
   void updateState();
 
