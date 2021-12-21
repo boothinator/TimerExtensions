@@ -39,7 +39,7 @@ public:
 
   void processCompareEvent();
 
-  enum class PulseState : uint8_t {Idle, WaitingToScheduleHigh, ScheduledHigh, WaitingToScheduleLow, ScheduledLow};
+  enum PulseState : uint8_t {Idle, WaitingToScheduleHigh, ScheduledHigh, WaitingToScheduleLow, ScheduledLow};
 
   const PulseState getState();
 
