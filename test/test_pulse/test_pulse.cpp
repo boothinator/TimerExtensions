@@ -53,7 +53,7 @@ void test_pulse()
   uint16_t tcnt = 0;
   uint8_t *ptcntl = (uint8_t *)&tcnt;
   uint8_t *ptcnth = ptcntl + 1;
-  ExtTimer extTimer(ptcntl, ptcnth);
+  ExtTimer extTimer(ptcntl, ptcnth, Timer::Timer0);
 
   PulseGen pulse(pocrl, pocrh, &tccra, &tccrb, &tccrc, com1, com0, foc, &extTimer);
   pulse.setStateChangeCallback(stateChangeCallback);

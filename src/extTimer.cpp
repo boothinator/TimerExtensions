@@ -22,12 +22,10 @@
 
 #include "timerTypes.h"
 
-ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth)
+ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, Timer timer) :
+  _tcntl(tcntl), _tcnth(tcnth), _timer(timer)
 {
   assert(tcntl);
-
-  this->_tcntl = tcntl;
-  this->_tcnth = tcnth;
 }
 
 const ticksExtraRange_t ExtTimer::get()
@@ -141,6 +139,11 @@ void ExtTimer::resetOverflowCount()
   _overflowTicks = 0;
 
   SREG = prevSREG; // restore interrupt state of the caller
+}
+
+Timer ExtTimer::getTimer()
+{
+  return _timer;
 }
 
 void ExtTimer::processOverflow()

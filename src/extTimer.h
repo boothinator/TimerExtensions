@@ -24,7 +24,7 @@
 class ExtTimer
 {
 public:
-  ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth);
+  ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, Timer timer);
   
   const ticksExtraRange_t get();
 
@@ -41,6 +41,8 @@ public:
   const uint16_t getOverflowCount();
   void resetOverflowCount();
 
+  Timer getTimer();
+
   void processOverflow();
 
 private:
@@ -48,6 +50,8 @@ private:
 
   volatile ticks8_t *_tcntl;
   volatile ticks8_t *_tcnth;
+
+  Timer _timer;
 };
 
 #ifdef TCNT0
@@ -79,5 +83,47 @@ extern ExtTimer ExtTimer4;
 extern ExtTimer ExtTimer5;
 #define HAVE_TCNT5
 #endif // TCNT5
+
+
+#ifdef ARDUINO_AVR_UNO
+
+#define ExtTimerPin6 ExtTimer0
+#define ExtTimerPin5 ExtTimer0
+
+#define ExtTimerPin9 ExtTimer1
+#define ExtTimerPin10 ExtTimer1
+
+#define ExtTimerPin11 ExtTimer2
+#define ExtTimerPin3 ExtTimer2
+
+#endif // ARDUINO_AVR_UNO
+
+
+
+#ifdef ARDUINO_AVR_MEGA2560
+
+#define ExtTimerPin13Timer0 ExtTimer0
+#define ExtTimerPin4 ExtTimer0
+
+#define ExtTimerPin11 ExtTimer1
+#define ExtTimerPin12 ExtTimer1
+#define ExtTimerPin13Timer1 ExtTimer1
+
+#define ExtTimerPin10 ExtTimer2
+#define ExtTimerPin9 ExtTimer2
+
+#define ExtTimerPin5 ExtTimer3
+#define ExtTimerPin2 ExtTimer3
+#define ExtTimerPin3 ExtTimer3
+
+#define ExtTimerPin6 ExtTimer4
+#define ExtTimerPin7 ExtTimer4
+#define ExtTimerPin8 ExtTimer4
+
+#define ExtTimerPin46 ExtTimer5
+#define ExtTimerPin45 ExtTimer5
+#define ExtTimerPin44 ExtTimer5
+
+#endif // ARDUINO_AVR_MEGA2560
 
 #endif // TIMER_EXT_EXT_TIMER_H_

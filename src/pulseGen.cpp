@@ -256,6 +256,16 @@ const PulseGen::PulseState PulseGen::getState()
   return _pulseState;
 }
 
+const Timer PulseGen::getTimer()
+{
+  return _tcnt->getTimer();
+}
+
+const ExtTimer *PulseGen::getExtTimer()
+{
+  return _tcnt;
+}
+
 void PulseGen::setStateChangeCallback(stateChangeCallback_t _cb, const void *_cbData)
 {
   char prevSREG = SREG;

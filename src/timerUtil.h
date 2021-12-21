@@ -19,9 +19,9 @@
 
 #include <stdint.h>
 
-enum class Timer {Timer0, Timer1, Timer2, Timer3, Timer4, Timer5}; // TODO: Implement 8-bit timers
+#include "timerTypes.h"
 
-enum class TimerClock { None, Clk, ClkDiv8 /* TODO: implement others*/ };
+enum class TimerClock { None, Clk, ClkDiv8, ClkDiv1024 /* TODO: implement others*/ };
 
 enum class TimerMode { Normal /* TODO: implement others*/ };
 

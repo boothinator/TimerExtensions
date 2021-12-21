@@ -23,7 +23,7 @@
 
 #ifdef HAVE_TCNT0
 
-ExtTimer ExtTimer0(&TCNT0, nullptr);
+ExtTimer ExtTimer0(&TCNT0, nullptr, Timer::Timer0);
 
 /*ISR(TIMER0_OVF_vect)
 {

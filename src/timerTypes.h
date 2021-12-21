@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 
+enum class Timer {Timer0, Timer1, Timer2, Timer3, Timer4, Timer5};
+
 typedef uint8_t  ticks8_t;
 typedef uint16_t ticks16_t;
 typedef uint32_t ticksExtraRange_t;

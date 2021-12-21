@@ -22,6 +22,8 @@
 
 namespace {
 
+// TODO: Implement 8-bit timers
+
 volatile uint8_t *getTimerTCCRA(Timer timer)
 {
   switch (timer)
@@ -84,6 +86,9 @@ void configureTimerClock(Timer timer, TimerClock clock)
       break;
     case TimerClock::ClkDiv8:
       *TCCRB = (*TCCRB & 0b11111000) | 0b00000010;
+      break;
+    case TimerClock::ClkDiv1024:
+      *TCCRB = (*TCCRB & 0b11111000) | 0b00000101;
       break;
   }
 }

@@ -23,7 +23,7 @@
 
 #ifdef HAVE_TCNT5
 
-ExtTimer ExtTimer5(&TCNT5L, &TCNT5H);
+ExtTimer ExtTimer5(&TCNT5L, &TCNT5H, Timer::Timer5);
 
 ISR(TIMER5_OVF_vect)
 {
