@@ -1,0 +1,22 @@
+{
+  "name": "ArduinoTimerExtensions",
+  "version": "0.0.1",
+  "description": "Easy access to advanced Arduino timer functions, such as precise timing, pulse generation, and input event capture.",
+  "keywords": "timing, pwm, pulse, capture",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/boothinator/ArduinoTimerExtensions.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Joshua Booth",
+      "email": "boothin8or@gmail.com"
+    }
+  ],
+  "license": "LGPL-3.0-or-later",
+  "homepage": "https://github.com/boothinator/ArduinoTimerExtensions",
+  "frameworks": ["arduino"],
+  "platforms": "atmelavr"
+}
