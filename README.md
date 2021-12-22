@@ -24,46 +24,60 @@ Directly manipulating the timers/counters in Arduino and AVR is tedious and conf
 
 ### TimerUtil
 
-timerUtil.h provides a number of convenience functions so you don't have to mess with AVR registers.
+timerUtil.h
+
+TimerUtil provides a number of convenience functions so you don't have to mess with AVR registers.
 Simply use digitalPinToTimer() to find the timer for a pin, or use timer names (TIMER0, TIMER1, etc.) to identify timers.
 
-configureTimerClock(timer, clock) - set the clock speed of a timer, relative to the system clock. Note
+`configureTimerClock(timer, clock)` - set the clock speed of a timer, relative to the system clock. Note
 that a value of None means that the clock is stopped.
 
-configureTimerMode(timer, mode) - change the timer mode.
+`configureTimerMode(timer, mode)` - change the timer mode.
 
-setInputCaptureNoiseCancellerEnabled(timer, enabled)
-getInputCaptureNoiseCancellerEnabled(timer) - Enable or disable the noise canceller for input capture.
+`setInputCaptureNoiseCancellerEnabled(timer, enabled)
+getInputCaptureNoiseCancellerEnabled(timer)` - Enable or disable the noise canceller for input capture.
 Adds a 4 clock cycle delay to the input capture.
 
-hasInputCapture(timer)
+`hasInputCapture(timer)
 clearInputCapture(timer)
 setInputCaptureEdge(timer, edge)
-getInputCapture(timer) - Allows you to poll for whether there is an input capture event instead of using
+getInputCapture(timer)` - Allows you to poll for whether there is an input capture event instead of using
 an interrupt.
 
-clockCyclesPerTick(clock)
+`clockCyclesPerTick(clock)
 ticksToClockCycles(ticks, clock)
 ticksToMilliseconds(ticks, clock)
 ticksToMicroseconds(ticks, clock)
 clockCyclesToTicks(clockCycles, clock)
 millisecondsToTicks(milliseconds, clock)
-microsecondsToTicks(microseconds, clock) - conversion
+microsecondsToTicks(microseconds, clock)` - conversion
 
-getTimerValue(timer)
-setTimerValue(timer, ticks) - get and set timer value. Most useful when the clock is stopped.
+`getTimerValue(timer)
+setTimerValue(timer, ticks)` - get and set timer value. Most useful when the clock is stopped.
 
-getTimerConfig()
-restoreTimerConfig(config) - save and restore the clock setting and mode of a timer. Useful when switching between PWM and Normal mode on the same timer/pin.
+`getTimerConfig()
+restoreTimerConfig(config)` - save and restore the clock setting and mode of a timer. Useful when switching between PWM and Normal mode on the same timer/pin.
 
 ### ExtTimer
+
+extTimer.h
 
 ExtTimer extends the range of Arduino's built-in timers.
 
 Ex: 
-ticksExtraRange_t ticks = ExtTimer1.get();
+`ticksExtraRange_t ticks = ExtTimer1.get();`
+
+### Input Capture Interrupts
+
+timerInterrupts.h
+
+Similar to Arduino, except that you attach an interrup to a timer, and the function you provde needs to take a uint16_t argument that will hold the input capture value.
+
+`attachInputCaptureInterrupt(timer, func, edge)`
+`detachInputCaptureInterrupt(uint8_t timer)`
 
 ### PulseGen
 
-PulseGen generates precise, jitter-free pulses on PWM pins.
+pulseGen.h
 
+PulseGen generates precise, jitter-free pulses on PWM pins.
