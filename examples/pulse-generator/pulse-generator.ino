@@ -38,7 +38,7 @@ void setup() {
   // Put timer in Normal timing mode
   configureTimerMode(ExtTimerPin11.getTimer(), TimerMode::Normal);
 
-  // Configure pin for putput
+  // Configure pin for output
   pinMode(11, OUTPUT);
 }
 
