@@ -89,6 +89,33 @@ volatile uint8_t *getTimerTCCRB(uint8_t timer)
   }
 }
 
+volatile uint8_t *getTimerTIFR(uint8_t timer)
+{
+  switch (timer)
+  {
+    case TIMER0:
+      return &TIFR0;
+    case TIMER1:
+      return &TIFR1;
+    case TIMER2:
+      return &TIFR2;
+#ifdef TIFR3A
+    case TIMER3:
+      return &TIFR3;
+#endif
+#ifdef TIFR4A
+    case TIMER4:
+      return &TIFR4;
+#endif
+#ifdef TIFR5A
+    case TIMER5:
+      return &TIFR5;
+#endif
+    default:
+      return nullptr;
+  }
+}
+
 } // namespace
 
 bool configureTimerClock(uint8_t timer, TimerClock clock)
@@ -235,6 +262,23 @@ TimerConfig getTimerConfig(uint8_t timer)
     *getTimerTCCRA(timer),
     *getTimerTCCRB(timer)
   };
+}
+
+
+constexpr uint8_t ICF = 5;
+
+bool hasInputCapture(uint8_t timer)
+{
+  volatile uint8_t *ptifr = getTimerTIFR(timer);
+
+  return (*ptifr & _BV(ICF)) == _BV(ICF);
+}
+
+void clearInputCapture(uint8_t timer)
+{
+  volatile uint8_t *ptifr = getTimerTIFR(timer);
+
+  *ptifr |= _BV(ICF);
 }
 
 void restoreTimerConfig(uint8_t timer, TimerConfig config)

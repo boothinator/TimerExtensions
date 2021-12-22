@@ -32,8 +32,10 @@ bool configureTimerMode(uint8_t timer, TimerMode mode);
 uint8_t inputCapturePinToTimer(uint8_t pin);
 
 void setInputCaptureNoiseCancellerEnabled(uint8_t timer, bool enabled);
-
 uint8_t getInputCaptureNoiseCancellerEnabled(uint8_t timer);
+
+bool hasInputCapture(uint8_t timer);
+void clearInputCapture(uint8_t timer);
 
 struct TimerConfig
 {
