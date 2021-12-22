@@ -23,7 +23,7 @@ void setup() {
   
   pinMode(8, OUTPUT);
 
-  attachInputCaptureInterrupt(TIMER1, inputCaptureInterrupt, Edge::Rising);
+  attachInputCaptureInterrupt(TIMER1, inputCaptureInterrupt, RISING);
 }
 
 void loop() {
