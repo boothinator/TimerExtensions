@@ -1,6 +1,8 @@
 # ArduinoTimerExtensions
 
-/Easy access to advanced Arduino/AVR timer functions, such as precise timing, pulse generation, and input event capture./
+*Easy access to advanced Arduino/AVR timer functions, such as precise timing, pulse generation, and input event capture.*
+
+Directly manipulating the timers/counters in Arduino and AVR is tedious and confusing. This library makes that simple by providing a number of convenience methods for accessing the timers. Easily attach interrupts to input capture events, extend the range of timers to 32 bits, or emit precisely timed pulses.
 
 ## Features
 
@@ -8,7 +10,8 @@
 * Extend timer ranges to 32 bits - about 268 seconds at 16 MHz with a precision of 1 clock cycle
 * Precise pulse generator
 * Input capture interrupts, similar to Arduino interrupts
-* Tested on Uno, Mega2560. Could easily adapt for other AVR chips
+* Tested on Uno, Mega2560. Could easily adapt to other AVR chips
+* No dependency on Arduino framework.
 * LGPL v3
 
 ## Examples
@@ -39,7 +42,7 @@ setInputCaptureEdge(timer, edge)
 getInputCapture(timer) - Allows you to poll for whether there is an input capture event instead of using
 an interrupt.
 
-clockCyclesPerTick(clock);
+clockCyclesPerTick(clock)
 ticksToClockCycles(ticks, clock)
 ticksToMilliseconds(ticks, clock)
 ticksToMicroseconds(ticks, clock)
