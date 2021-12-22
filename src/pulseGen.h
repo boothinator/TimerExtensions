@@ -80,6 +80,8 @@ private:
   void updateState();
 
   void setOcr(ticks16_t val);
+
+  const ticks16_t getCheckTicks(ticksExtraRange_t ticks);
 };
 
 #ifdef HAVE_TCNT0

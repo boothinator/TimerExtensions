@@ -134,10 +134,8 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
     // Force output compare to ensure it's low
     *_tccrc |= _BV(_foc);
 
-    // Use the compare interrupt to check if it's time to schedule,
-    // but give us plenty of time to schedule by checking
-    // UINT16_MAX - 1 ticks before the event
-    setOcr(((ticks16_t) _start) + 1);
+    // Use the compare interrupt to check if it's time to schedule
+    setOcr(getCheckTicks(_start));
 
     // Enable OCR interrupt
     *_timsk |= _BV(_ocie);
@@ -188,10 +186,8 @@ void PulseGen::updateState()
   }
   else if (PulseState::ScheduledHigh == _pulseState)
   {
-    // Use the compare interrupt to check if it's time to schedule,
-    // but give us plenty of time to schedule by checking
-    // UINT16_MAX - 1 ticks before the event
-    setOcr(((ticks16_t)_end) + 1);
+    // Use the compare interrupt to check if it's time to schedule
+    setOcr(getCheckTicks(_end));
 
     _pulseState = PulseState::WaitingToScheduleLow;
     if (_cb)
@@ -379,4 +375,23 @@ void PulseGen::setOcr(ticks16_t val)
     *_ocrl = static_cast<uint8_t>(val);
   }
   
+}
+
+const ticks16_t PulseGen::getCheckTicks(ticksExtraRange_t ticks)
+{
+  // Use the compare interrupt to check if it's time to schedule,
+  // but give us plenty of time to schedule by checking
+  // UINT16_MAX - 1 or UINT8_MAX - 1 ticks before the event
+  if (_ocrh)
+  {
+    // 16-bit
+    uint16_t checkTicks = ((ticks16_t) _start) + 1;
+    return checkTicks;
+  }
+  else
+  {
+    // 8-bit
+    uint8_t checkTicks = ((ticks8_t) _start) + 1;
+    return checkTicks;
+  }
 }
