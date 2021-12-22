@@ -1,4 +1,4 @@
-# ArduinoTimerExtensions
+# TimerExtensions
 
 *Easy access to advanced Arduino/AVR timer functions, such as precise timing, pulse generation, and input event capture.*
 
