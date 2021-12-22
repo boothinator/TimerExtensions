@@ -1,6 +1,6 @@
 {
   "name": "TimerExtensions",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "Easy access to advanced Arduino timer functions, such as precise timing, pulse generation, and input event capture.",
   "keywords": "timing, pwm, pulse, capture, timer",
   "repository":
