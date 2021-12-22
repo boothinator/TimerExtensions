@@ -36,6 +36,7 @@ uint8_t getInputCaptureNoiseCancellerEnabled(uint8_t timer);
 
 bool hasInputCapture(uint8_t timer);
 void clearInputCapture(uint8_t timer);
+ticks16_t getInputCapture(uint8_t timer);
 
 int clockCyclesPerTick(TimerClock clock);
 

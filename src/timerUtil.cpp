@@ -273,6 +273,28 @@ void clearInputCapture(uint8_t timer)
   *ptifr |= _BV(ICF);
 }
 
+ticks16_t getInputCapture(uint8_t timer)
+{
+  switch (timer)
+  {
+    case TIMER1:
+      return ICR1;
+#ifdef ICR3A
+    case TIMER3:
+      return ICR3;
+#endif
+#ifdef ICR4A
+    case TIMER4:
+      return ICR4;
+#endif
+#ifdef ICR5A
+    case TIMER5:
+      return ICR5;
+#endif
+    default:
+      return 0;
+  }
+}
 
 int clockCyclesPerTick(TimerClock clock)
 {
