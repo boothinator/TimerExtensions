@@ -38,25 +38,25 @@ that a value of None means that the clock is stopped.
 getInputCaptureNoiseCancellerEnabled(timer)` - Enable or disable the noise canceller for input capture.
 Adds a 4 clock cycle delay to the input capture.
 
-`hasInputCapture(timer)
-clearInputCapture(timer)
-setInputCaptureEdge(timer, edge)
-getInputCapture(timer)` - Allows you to poll for whether there is an input capture event instead of using
+`hasInputCapture(timer)`
+`clearInputCapture(timer)`
+`setInputCaptureEdge(timer, edge)`
+`getInputCapture(timer)` - Allows you to poll for whether there is an input capture event instead of using
 an interrupt.
 
-`clockCyclesPerTick(clock)
-ticksToClockCycles(ticks, clock)
-ticksToMilliseconds(ticks, clock)
-ticksToMicroseconds(ticks, clock)
-clockCyclesToTicks(clockCycles, clock)
-millisecondsToTicks(milliseconds, clock)
-microsecondsToTicks(microseconds, clock)` - conversion
+`clockCyclesPerTick(clock)`
+`ticksToClockCycles(ticks, clock)`
+`ticksToMilliseconds(ticks, clock)`
+`ticksToMicroseconds(ticks, clock)`
+`clockCyclesToTicks(clockCycles, clock)`
+`millisecondsToTicks(milliseconds, clock)`
+`microsecondsToTicks(microseconds, clock)` - conversion
 
-`getTimerValue(timer)
-setTimerValue(timer, ticks)` - get and set timer value. Most useful when the clock is stopped.
+`getTimerValue(timer)`
+`setTimerValue(timer, ticks)` - get and set timer value. Most useful when the clock is stopped.
 
-`getTimerConfig()
-restoreTimerConfig(config)` - save and restore the clock setting and mode of a timer. Useful when switching between PWM and Normal mode on the same timer/pin.
+`getTimerConfig()`
+`restoreTimerConfig(config)` - save and restore the clock setting and mode of a timer. Useful when switching between PWM and Normal mode on the same timer/pin.
 
 ### ExtTimer
 
@@ -71,7 +71,7 @@ Ex:
 
 timerInterrupts.h
 
-Similar to Arduino, except that you attach an interrup to a timer, and the function you provde needs to take a uint16_t argument that will hold the input capture value.
+Similar to Arduino, except that you attach an interrup to a timer, and the function you provde needs to take a uint16_t argument that will hold the input capture value. Note that only 16-bit timers have input capture units.
 
 `attachInputCaptureInterrupt(timer, func, edge)`
 `detachInputCaptureInterrupt(uint8_t timer)`
@@ -80,4 +80,13 @@ Similar to Arduino, except that you attach an interrup to a timer, and the funct
 
 pulseGen.h
 
-PulseGen generates precise, jitter-free pulses on PWM pins.
+PulseGen generates precise, jitter-free pulses on PWM pins. Note that this only when a timer's clock is in Normal mode, and the pin is set for output.
+
+Ex: 
+`configureTimerClock(ExtTimerPin11.getTimer(), TimerClock::ClkDiv1024);`
+`configureTimerMode(ExtTimerPin11.getTimer(), TimerMode::Normal);`
+`pinMode(11, OUTPUT);`
+
+`ticksExtraRange_t nowTicks = ExtTimerPin11.get();`
+`PulseGenPin11.setStart(nowTicks + 50000);`
+`PulseGenPin11.setEnd(nowTicks + 110000);`
