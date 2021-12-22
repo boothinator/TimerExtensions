@@ -206,6 +206,28 @@ uint8_t inputCapturePinToTimer(uint8_t pin)
   }
 }
 
+constexpr uint8_t ICNC = 7;
+
+void setInputCaptureNoiseCancellerEnabled(uint8_t timer, bool enabled)
+{
+  volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  if (enabled)
+  {
+    *ptccrb |= _BV(ICNC);
+  }
+  else
+  {
+    *ptccrb &= ~_BV(ICNC);
+  }
+}
+
+uint8_t getInputCaptureNoiseCancellerEnabled(uint8_t timer)
+{
+  volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  return (*ptccrb & _BV(ICNC)) == _BV(ICNC);
+}
 
 TimerConfig getTimerConfig(uint8_t timer)
 {
