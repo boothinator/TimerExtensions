@@ -32,12 +32,12 @@ bool configureTimerMode(uint8_t timer, TimerMode mode);
 uint8_t inputCapturePinToTimer(uint8_t pin);
 
 void setInputCaptureNoiseCancellerEnabled(uint8_t timer, bool enabled);
-uint8_t getInputCaptureNoiseCancellerEnabled(uint8_t timer);
+bool getInputCaptureNoiseCancellerEnabled(uint8_t timer);
 
 bool hasInputCapture(uint8_t timer);
 void clearInputCapture(uint8_t timer);
 void setInputCaptureEdge(uint8_t timer, uint8_t edge);
-ticks16_t getInputCapture(uint8_t timer);
+ticks16_t getInputCapture(uint8_t timer, bool clear = true);
 
 int clockCyclesPerTick(TimerClock clock);
 

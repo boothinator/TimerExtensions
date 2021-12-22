@@ -122,6 +122,11 @@ bool configureTimerClock(uint8_t timer, TimerClock clock)
 {
   volatile uint8_t *TCCRB = getTimerTCCRB(timer);
 
+  if (!TCCRB)
+  {
+    return false;
+  }
+
   uint8_t cs;
 
   if (TimerClock::None == clock)
@@ -201,6 +206,11 @@ bool configureTimerMode(uint8_t timer, TimerMode mode)
   volatile uint8_t *TCCRA = getTimerTCCRA(timer);
   volatile uint8_t *TCCRB = getTimerTCCRB(timer);
 
+  if (!TCCRA)
+  {
+    return false;
+  }
+
   switch (mode)
   {
     case TimerMode::Normal:
@@ -239,6 +249,11 @@ void setInputCaptureNoiseCancellerEnabled(uint8_t timer, bool enabled)
 {
   volatile uint8_t *ptccrb = getTimerTCCRB(timer);
 
+  if (!ptccrb)
+  {
+    return;
+  }
+
   if (enabled)
   {
     *ptccrb |= _BV(ICNC);
@@ -249,9 +264,14 @@ void setInputCaptureNoiseCancellerEnabled(uint8_t timer, bool enabled)
   }
 }
 
-uint8_t getInputCaptureNoiseCancellerEnabled(uint8_t timer)
+bool getInputCaptureNoiseCancellerEnabled(uint8_t timer)
 {
   volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  if (!ptccrb)
+  {
+    return false;
+  }
 
   return (*ptccrb & _BV(ICNC)) == _BV(ICNC);
 }
@@ -263,12 +283,22 @@ bool hasInputCapture(uint8_t timer)
 {
   volatile uint8_t *ptifr = getTimerTIFR(timer);
 
+  if (!ptifr)
+  {
+    return;
+  }
+
   return (*ptifr & _BV(ICF)) == _BV(ICF);
 }
 
 void clearInputCapture(uint8_t timer)
 {
   volatile uint8_t *ptifr = getTimerTIFR(timer);
+
+  if (!ptifr)
+  {
+    return;
+  }
 
   *ptifr |= _BV(ICF);
 }
@@ -278,6 +308,11 @@ constexpr uint8_t ICES = 6;
 void setInputCaptureEdge(uint8_t timer, uint8_t edge)
 {
   volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  if (!ptccrb)
+  {
+    return;
+  }
 
   if (edge == RISING)
   {
@@ -289,8 +324,10 @@ void setInputCaptureEdge(uint8_t timer, uint8_t edge)
   }
 }
 
-ticks16_t getInputCapture(uint8_t timer)
+ticks16_t getInputCapture(uint8_t timer, bool clear = true)
 {
+  clearInputCapture(timer);
+
   switch (timer)
   {
     case TIMER1:
@@ -432,17 +469,29 @@ void setTimerValue(uint8_t timer, ticks16_t ticks)
 
 TimerConfig getTimerConfig(uint8_t timer)
 {
+  volatile uint8_t *ptccra = getTimerTCCRA(timer);
+  volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  if (!ptccra)
+  {
+    return {0, 0};
+  }
+
   return {
-    *getTimerTCCRA(timer),
-    *getTimerTCCRB(timer)
+    *ptccra,
+    *ptccrb
   };
 }
 
 void restoreTimerConfig(uint8_t timer, TimerConfig config)
 {
-
   volatile uint8_t *ptccra = getTimerTCCRA(timer);
   volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  if (!ptccra)
+  {
+    return {0, 0};
+  }
 
   uint8_t tccraVal = (*ptccra & 0b11111100) | (config.tccra & 0b00000011);
   uint8_t tccrbVal = config.tccrb;
