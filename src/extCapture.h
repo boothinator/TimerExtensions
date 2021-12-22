@@ -35,8 +35,6 @@ public:
   bool hasCapture();
   void clearCaptureFlag();
 
-  enum Edge {Rising, Falling};
-
   void setCaptureEdge(Edge edge);
   Edge getCaptureEdge();
 

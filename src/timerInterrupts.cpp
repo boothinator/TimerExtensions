@@ -67,21 +67,37 @@ void attachInputCaptureInterrupt(Timer timer, icpIntFuncPtr func, Edge edge)
 #ifdef ICR1
     case Timer::Timer1:
       TIMSK1 |= _BV(ICIE1);
+      if (edge == Edge::Rising)
+        TCCR1B |= _BV(ICES1);
+      else
+        TCCR1B &= ~_BV(ICES1);
       break;
 #endif
 #ifdef ICR3
     case Timer::Timer3:
       TIMSK3 |= _BV(ICIE3);
+      if (edge == Edge::Rising)
+        TCCR3B |= _BV(ICES3);
+      else
+        TCCR3B &= ~_BV(ICES3);
       break;
 #endif
 #ifdef ICR4
     case Timer::Timer4:
       TIMSK4 |= _BV(ICIE4);
+      if (edge == Edge::Rising)
+        TCCR4B |= _BV(ICES4);
+      else
+        TCCR4B &= ~_BV(ICES4);
       break;
 #endif
 #ifdef ICR5
     case Timer::Timer5:
       TIMSK5 |= _BV(ICIE5);
+      if (edge == Edge::Rising)
+        TCCR5B |= _BV(ICES5);
+      else
+        TCCR5B &= ~_BV(ICES5);
       break;
 #endif
     default:
