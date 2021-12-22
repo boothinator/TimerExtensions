@@ -24,11 +24,15 @@
 
 #include "extTimer.h"
 
+#ifdef OCR5A
+
 PulseGen PulseGen5A(&OCR5AL, &OCR5AH, &TCCR5A, &TCCR5B, &TCCR5C, &TIMSK5, COM5A1, COM5A0, FOC5A, OCIE5A, &ExtTimer5);
 
 ISR(TIMER5_COMPA_vect)
 {
   PulseGen5A.processCompareEvent();
 }
+
+#endif
 
 #endif // TIMER_EXT_PULSE_GEN5A_H_

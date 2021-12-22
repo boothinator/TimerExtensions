@@ -24,11 +24,15 @@
 
 #include "extTimer.h"
 
+#ifdef OCR1C
+
 PulseGen PulseGen1C(&OCR1CL, &OCR1CH, &TCCR1A, &TCCR1B, &TCCR1C, &TIMSK1, COM1C1, COM1C0, FOC1C, OCIE1C, &ExtTimer1);
 
 ISR(TIMER1_COMPC_vect)
 {
   PulseGen1C.processCompareEvent();
 }
+
+#endif
 
 #endif // TIMER_EXT_PULSE_GEN1C_H_
