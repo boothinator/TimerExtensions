@@ -19,7 +19,7 @@
 
 #include "timerTypes.h"
 
-typedef void (*icpIntFuncPtr)(ticksExtraRange_t ticks);
+typedef void (*icpIntFuncPtr)(ticks16_t ticks);
 
 void attachInputCaptureInterrupt(Timer timer, icpIntFuncPtr func, Edge edge);
 

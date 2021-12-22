@@ -22,7 +22,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-static void icpIntDoNothing(ticksExtraRange_t ticks) {
+static void icpIntDoNothing(ticks16_t ticks) {
 }
 
 static volatile icpIntFuncPtr icpIntFunc[] = {
