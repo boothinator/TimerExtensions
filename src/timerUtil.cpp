@@ -331,6 +331,65 @@ ticksExtraRange_t microsecondsToTicks(uint32_t microseconds, TimerClock clock)
 }
 
 
+ticks16_t getTimerValue(uint8_t timer)
+{
+  switch (timer)
+  {
+    case TIMER0:
+      return TCNT0;
+    case TIMER1:
+      return TCNT1;
+    case TIMER2:
+      return TCNT2;
+#ifdef TCNT3A
+    case TIMER3:
+      return TCNT3;
+#endif
+#ifdef TCNT4A
+    case TIMER4:
+      return TCNT4;
+#endif
+#ifdef TCNT5A
+    case TIMER5:
+      return TCNT5;
+#endif
+    default:
+      return 0;
+  }
+}
+
+void setTimerValue(uint8_t timer, ticks16_t ticks)
+{
+  switch (timer)
+  {
+    case TIMER0:
+      TCNT0 = ticks;
+      break;
+    case TIMER1:
+      TCNT1 = ticks;
+      break;
+    case TIMER2:
+      TCNT2 = ticks;
+      break;
+#ifdef TCNT3A
+    case TIMER3:
+      TCNT3 = ticks;
+      break;
+#endif
+#ifdef TCNT4A
+    case TIMER4:
+      TCNT4 = ticks;
+      break;
+#endif
+#ifdef TCNT5A
+    case TIMER5:
+      TCNT5 = ticks;
+      break;
+#endif
+    default:
+      break;
+  }
+}
 
 
 TimerConfig getTimerConfig(uint8_t timer)

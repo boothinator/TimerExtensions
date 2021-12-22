@@ -47,6 +47,9 @@ ticksExtraRange_t clockCyclesToTicks(uint32_t clockCycles, TimerClock clock);
 ticksExtraRange_t millisecondsToTicks(uint32_t milliseconds, TimerClock clock);
 ticksExtraRange_t microsecondsToTicks(uint32_t microseconds, TimerClock clock);
 
+ticks16_t getTimerValue(uint8_t timer);
+void setTimerValue(uint8_t timer, ticks16_t ticks);
+
 struct TimerConfig
 {
   uint8_t tccra;
