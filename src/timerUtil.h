@@ -37,6 +37,16 @@ uint8_t getInputCaptureNoiseCancellerEnabled(uint8_t timer);
 bool hasInputCapture(uint8_t timer);
 void clearInputCapture(uint8_t timer);
 
+int clockCyclesPerTick(TimerClock clock);
+
+int ticksToClockCycles(ticksExtraRange_t ticks, TimerClock clock);
+int ticksToMilliseconds(ticksExtraRange_t ticks, TimerClock clock);
+int ticksToMicroseconds(ticksExtraRange_t ticks, TimerClock clock);
+
+ticksExtraRange_t clockCyclesToTicks(uint32_t clockCycles, TimerClock clock);
+ticksExtraRange_t millisecondsToTicks(uint32_t milliseconds, TimerClock clock);
+ticksExtraRange_t microsecondsToTicks(uint32_t microseconds, TimerClock clock);
+
 struct TimerConfig
 {
   uint8_t tccra;

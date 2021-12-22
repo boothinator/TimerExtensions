@@ -256,14 +256,6 @@ uint8_t getInputCaptureNoiseCancellerEnabled(uint8_t timer)
   return (*ptccrb & _BV(ICNC)) == _BV(ICNC);
 }
 
-TimerConfig getTimerConfig(uint8_t timer)
-{
-  return {
-    *getTimerTCCRA(timer),
-    *getTimerTCCRB(timer)
-  };
-}
-
 
 constexpr uint8_t ICF = 5;
 
@@ -279,6 +271,74 @@ void clearInputCapture(uint8_t timer)
   volatile uint8_t *ptifr = getTimerTIFR(timer);
 
   *ptifr |= _BV(ICF);
+}
+
+
+int clockCyclesPerTick(TimerClock clock)
+{
+  switch (clock)
+  {
+    case TimerClock::Clk:
+      return 1;
+    case TimerClock::ClkDiv8:
+      return 8;
+    case TimerClock::ClkDiv32:
+      return 32;
+    case TimerClock::ClkDiv64:
+      return 64;
+    case TimerClock::ClkDiv128:
+      return 128;
+    case TimerClock::ClkDiv256:
+      return 256;
+    case TimerClock::ClkDiv1024:
+      return 1024;
+    default:
+      return 0;
+  }
+}
+
+constexpr int clockCyclesPerMillisecond = F_CPU / 1000;
+constexpr int clockCyclesPerMicrosecond = F_CPU / 1000000;
+
+int ticksToClockCycles(ticksExtraRange_t ticks, TimerClock clock)
+{
+  return ticks * clockCyclesPerTick(clock);
+}
+
+int ticksToMilliseconds(ticksExtraRange_t ticks, TimerClock clock)
+{
+  return ticks * clockCyclesPerTick(clock) / clockCyclesPerMillisecond;
+}
+
+int ticksToMicroseconds(ticksExtraRange_t ticks, TimerClock clock)
+{
+  return ticks * clockCyclesPerTick(clock) / clockCyclesPerMicrosecond;
+}
+
+ticksExtraRange_t clockCyclesToTicks(uint32_t clockCycles, TimerClock clock)
+{
+  return clockCycles / clockCyclesPerTick(clock);
+}
+
+ticksExtraRange_t millisecondsToTicks(uint32_t milliseconds, TimerClock clock)
+{
+  return milliseconds * clockCyclesPerMillisecond / clockCyclesPerTick(clock);
+}
+
+ticksExtraRange_t microsecondsToTicks(uint32_t microseconds, TimerClock clock)
+{
+  return microseconds * clockCyclesPerMicrosecond / clockCyclesPerTick(clock);
+}
+
+
+
+
+TimerConfig getTimerConfig(uint8_t timer)
+{
+  return {
+    *getTimerTCCRA(timer),
+    *getTimerTCCRB(timer)
+  };
 }
 
 void restoreTimerConfig(uint8_t timer, TimerConfig config)
