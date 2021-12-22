@@ -24,7 +24,8 @@
 timerUtil.h provides a number of convenience functions so you don't have to mess with AVR registers.
 Simply use digitalPinToTimer() to find the timer for a pin, or use timer names (TIMER0, TIMER1, etc.) to identify timers.
 
-configureTimerClock(timer, clock) - set the clock speed of a timer, relative to the system clock.
+configureTimerClock(timer, clock) - set the clock speed of a timer, relative to the system clock. Note
+that a value of None means that the clock is stopped.
 
 configureTimerMode(timer, mode) - change the timer mode.
 
@@ -37,6 +38,17 @@ clearInputCapture(timer)
 setInputCaptureEdge(timer, edge)
 getInputCapture(timer) - Allows you to poll for whether there is an input capture event instead of using
 an interrupt.
+
+clockCyclesPerTick(clock);
+ticksToClockCycles(ticks, clock)
+ticksToMilliseconds(ticks, clock)
+ticksToMicroseconds(ticks, clock)
+clockCyclesToTicks(clockCycles, clock)
+millisecondsToTicks(milliseconds, clock)
+microsecondsToTicks(microseconds, clock) - conversion
+
+getTimerValue(timer)
+setTimerValue(timer, ticks) - get and set timer value. Most useful when the clock is stopped.
 
 getTimerConfig()
 restoreTimerConfig(config) - save and restore the clock setting and mode of a timer. Useful when switching between PWM and Normal mode on the same timer/pin.
