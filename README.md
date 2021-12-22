@@ -84,9 +84,13 @@ PulseGen generates precise, jitter-free pulses on PWM pins. Note that this only 
 
 Ex: 
 `configureTimerClock(ExtTimerPin11.getTimer(), TimerClock::ClkDiv1024);`
+
 `configureTimerMode(ExtTimerPin11.getTimer(), TimerMode::Normal);`
+
 `pinMode(11, OUTPUT);`
 
 `ticksExtraRange_t nowTicks = ExtTimerPin11.get();`
+
 `PulseGenPin11.setStart(nowTicks + 50000);`
+
 `PulseGenPin11.setEnd(nowTicks + 110000);`
