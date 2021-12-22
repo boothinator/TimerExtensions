@@ -273,6 +273,22 @@ void clearInputCapture(uint8_t timer)
   *ptifr |= _BV(ICF);
 }
 
+constexpr uint8_t ICES = 6;
+
+void setInputCaptureEdge(uint8_t timer, uint8_t edge)
+{
+  volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  if (edge == RISING)
+  {
+    *ptccrb |= _BV(ICES);
+  }
+  else
+  {
+    *ptccrb &= ~_BV(ICES);
+  }
+}
+
 ticks16_t getInputCapture(uint8_t timer)
 {
   switch (timer)
