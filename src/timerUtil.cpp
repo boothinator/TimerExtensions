@@ -24,26 +24,37 @@ namespace {
 
 // TODO: Implement 8-bit timers
 
-volatile uint8_t *getTimerTCCRA(Timer timer)
+volatile uint8_t *getTimerTCCRA(uint8_t timer)
 {
   switch (timer)
   {
-    case Timer::Timer0:
+    case TIMER0:
+    case TIMER0B:
       return &TCCR0A;
-    case Timer::Timer1:
+    case TIMER1:
+    case TIMER1B:
+    case TIMER1C:
       return &TCCR1A;
-    case Timer::Timer2:
+    case TIMER2:
+    case TIMER2A:
+    case TIMER2B:
       return &TCCR2A;
 #ifdef TCCR3A
-    case Timer::Timer3:
+    case TIMER3:
+    case TIMER3B:
+    case TIMER3C:
       return &TCCR3A;
 #endif
 #ifdef TCCR4A
-    case Timer::Timer4:
+    case TIMER4:
+    case TIMER4B:
+    case TIMER4C:
       return &TCCR4A;
 #endif
 #ifdef TCCR5A
-    case Timer::Timer5:
+    case TIMER5:
+    case TIMER5B:
+    case TIMER5C:
       return &TCCR5A;
 #endif
     default:
@@ -51,26 +62,26 @@ volatile uint8_t *getTimerTCCRA(Timer timer)
   }
 }
 
-volatile uint8_t *getTimerTCCRB(Timer timer)
+volatile uint8_t *getTimerTCCRB(uint8_t timer)
 {
   switch (timer)
   {
-    case Timer::Timer0:
+    case TIMER0:
       return &TCCR0B;
-    case Timer::Timer1:
+    case TIMER1:
       return &TCCR1B;
-    case Timer::Timer2:
+    case TIMER2:
       return &TCCR2B;
 #ifdef TCCR3A
-    case Timer::Timer3:
+    case TIMER3:
       return &TCCR3B;
 #endif
 #ifdef TCCR4A
-    case Timer::Timer4:
+    case TIMER4:
       return &TCCR4B;
 #endif
 #ifdef TCCR5A
-    case Timer::Timer5:
+    case TIMER5:
       return &TCCR5B;
 #endif
     default:
@@ -80,7 +91,7 @@ volatile uint8_t *getTimerTCCRB(Timer timer)
 
 } // namespace
 
-bool configureTimerClock(Timer timer, TimerClock clock)
+bool configureTimerClock(uint8_t timer, TimerClock clock)
 {
   volatile uint8_t *TCCRB = getTimerTCCRB(timer);
 
@@ -100,7 +111,7 @@ bool configureTimerClock(Timer timer, TimerClock clock)
   }
   else if (TimerClock::ClkDiv32 == clock)
   {
-    if (Timer::Timer2 == timer)
+    if (TIMER2 == timer)
     {
       cs = 0b00000011;
     }
@@ -111,7 +122,7 @@ bool configureTimerClock(Timer timer, TimerClock clock)
   }
   else if (TimerClock::ClkDiv64 == clock)
   {
-    if (Timer::Timer2 == timer)
+    if (TIMER2 == timer)
     {
       cs = 0b00000100;
     }
@@ -122,7 +133,7 @@ bool configureTimerClock(Timer timer, TimerClock clock)
   }
   else if (TimerClock::ClkDiv128 == clock)
   {
-    if (Timer::Timer2 == timer)
+    if (TIMER2 == timer)
     {
       cs = 0b00000011;
     }
@@ -133,7 +144,7 @@ bool configureTimerClock(Timer timer, TimerClock clock)
   }
   else if (TimerClock::ClkDiv256 == clock)
   {
-    if (Timer::Timer2 == timer)
+    if (TIMER2 == timer)
     {
       cs = 0b00000110;
     }
@@ -144,7 +155,7 @@ bool configureTimerClock(Timer timer, TimerClock clock)
   }
   else if (TimerClock::ClkDiv1024 == clock)
   {
-    if (Timer::Timer2 == timer)
+    if (TIMER2 == timer)
     {
       cs = 0b00000111;
     }
@@ -158,7 +169,7 @@ bool configureTimerClock(Timer timer, TimerClock clock)
   return true;
 }
 
-bool configureTimerMode(Timer timer, TimerMode mode)
+bool configureTimerMode(uint8_t timer, TimerMode mode)
 {
   volatile uint8_t *TCCRA = getTimerTCCRA(timer);
   volatile uint8_t *TCCRB = getTimerTCCRB(timer);
@@ -175,7 +186,7 @@ bool configureTimerMode(Timer timer, TimerMode mode)
 }
 
 
-TimerConfig getTimerConfig(Timer timer)
+TimerConfig getTimerConfig(uint8_t timer)
 {
   return {
     *getTimerTCCRA(timer),
@@ -183,7 +194,7 @@ TimerConfig getTimerConfig(Timer timer)
   };
 }
 
-void restoreTimerConfig(Timer timer, TimerConfig config)
+void restoreTimerConfig(uint8_t timer, TimerConfig config)
 {
 
   volatile uint8_t *ptccra = getTimerTCCRA(timer);

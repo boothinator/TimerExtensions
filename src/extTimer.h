@@ -24,7 +24,7 @@
 class ExtTimer
 {
 public:
-  ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk, uint8_t toie, Timer timer);
+  ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk, uint8_t toie, uint8_t timer);
   
   const ticksExtraRange_t get();
 
@@ -39,7 +39,7 @@ public:
   const uint16_t getOverflowCount();
   void resetOverflowCount();
 
-  Timer getTimer();
+  int getTimer();
 
   void processOverflow();
 
@@ -52,7 +52,7 @@ private:
   volatile uint8_t *_timsk;
   uint8_t _toie;
 
-  Timer _timer;
+  int _timer;
 };
 
 #ifdef TCNT0

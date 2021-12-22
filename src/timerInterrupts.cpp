@@ -34,24 +34,32 @@ static volatile icpIntFuncPtr icpIntFunc[] = {
 #endif
 };
 
-int getIcpIntIndex(Timer timer)
+int getIcpIntIndex(uint8_t timer)
 {
   switch (timer)
   {
-    case Timer::Timer1:
+    case TIMER1:
+    case TIMER1B:
+    case TIMER1C:
       return 0;
-    case Timer::Timer3:
+    case TIMER3:
+    case TIMER3B:
+    case TIMER3C:
       return 1;
-    case Timer::Timer4:
+    case TIMER4:
+    case TIMER4B:
+    case TIMER4C:
       return 2;
-    case Timer::Timer5:
+    case TIMER5:
+    case TIMER5B:
+    case TIMER5C:
       return 3;
     default:
       return -1;
   }
 }
 
-void attachInputCaptureInterrupt(Timer timer, icpIntFuncPtr func, Edge edge)
+void attachInputCaptureInterrupt(uint8_t timer, icpIntFuncPtr func, uint8_t edge)
 {
   int index = getIcpIntIndex(timer);
 
@@ -65,36 +73,36 @@ void attachInputCaptureInterrupt(Timer timer, icpIntFuncPtr func, Edge edge)
   switch (timer)
   {
 #ifdef ICR1
-    case Timer::Timer1:
+    case TIMER1:
       TIMSK1 |= _BV(ICIE1);
-      if (edge == Edge::Rising)
+      if (edge == RISING)
         TCCR1B |= _BV(ICES1);
       else
         TCCR1B &= ~_BV(ICES1);
       break;
 #endif
 #ifdef ICR3
-    case Timer::Timer3:
+    case TIMER3:
       TIMSK3 |= _BV(ICIE3);
-      if (edge == Edge::Rising)
+      if (edge == RISING)
         TCCR3B |= _BV(ICES3);
       else
         TCCR3B &= ~_BV(ICES3);
       break;
 #endif
 #ifdef ICR4
-    case Timer::Timer4:
+    case TIMER4:
       TIMSK4 |= _BV(ICIE4);
-      if (edge == Edge::Rising)
+      if (edge == RISING)
         TCCR4B |= _BV(ICES4);
       else
         TCCR4B &= ~_BV(ICES4);
       break;
 #endif
 #ifdef ICR5
-    case Timer::Timer5:
+    case TIMER5:
       TIMSK5 |= _BV(ICIE5);
-      if (edge == Edge::Rising)
+      if (edge == RISING)
         TCCR5B |= _BV(ICES5);
       else
         TCCR5B &= ~_BV(ICES5);
@@ -105,7 +113,7 @@ void attachInputCaptureInterrupt(Timer timer, icpIntFuncPtr func, Edge edge)
   }
 }
 
-void detachInputCaptureInterrupt(Timer timer)
+void detachInputCaptureInterrupt(uint8_t timer)
 {
   int index = getIcpIntIndex(timer);
 
@@ -117,22 +125,22 @@ void detachInputCaptureInterrupt(Timer timer)
   switch (timer)
   {
 #ifdef ICR1
-    case Timer::Timer1:
+    case TIMER1:
       TIMSK1 &= ~_BV(ICIE1);
       break;
 #endif
 #ifdef ICR3
-    case Timer::Timer3:
+    case TIMER3:
       TIMSK3 &= ~_BV(ICIE3);
       break;
 #endif
 #ifdef ICR4
-    case Timer::Timer4:
+    case TIMER4:
       TIMSK4 &= ~_BV(ICIE4);
       break;
 #endif
 #ifdef ICR5
-    case Timer::Timer5:
+    case TIMER5:
       TIMSK5 &= ~_BV(ICIE5);
       break;
 #endif

@@ -23,7 +23,7 @@
 
 #ifdef HAVE_TCNT1
 
-ExtTimer ExtTimer1(&TCNT1L, &TCNT1H, &TIMSK1, TOIE1, Timer::Timer1);
+ExtTimer ExtTimer1(&TCNT1L, &TCNT1H, &TIMSK1, TOIE1, TIMER1);
 
 ISR(TIMER1_OVF_vect)
 {

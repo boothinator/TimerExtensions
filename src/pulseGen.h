@@ -43,7 +43,7 @@ public:
 
   const PulseState getState();
 
-  const Timer getTimer();
+  const int getTimer();
   const ExtTimer *getExtTimer();
 
   void setStateChangeCallback(stateChangeCallback_t _cb, const void *_cbData = nullptr);

@@ -16,14 +16,14 @@ void setup() {
   // GetTimer(pin 8)
   
   // Configure the timer to run at the speed of the system clock
-  configureTimerClock(Timer::Timer1, TimerClock::ClkDiv1024);
+  configureTimerClock(TIMER1, TimerClock::ClkDiv1024);
 
   // Put timer in Normal timing mode
-  configureTimerMode(Timer::Timer1, TimerMode::Normal);
+  configureTimerMode(TIMER1, TimerMode::Normal);
   
   pinMode(8, OUTPUT);
 
-  attachInputCaptureInterrupt(Timer::Timer1, inputCaptureInterrupt, Edge::Rising);
+  attachInputCaptureInterrupt(TIMER1, inputCaptureInterrupt, Edge::Rising);
 }
 
 void loop() {

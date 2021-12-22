@@ -25,9 +25,9 @@ enum class TimerClock { None, Clk, ClkDiv8, ClkDiv32, ClkDiv64, ClkDiv128, ClkDi
 
 enum class TimerMode { Normal /* TODO: implement others*/ };
 
-bool configureTimerClock(Timer timer, TimerClock clock);
+bool configureTimerClock(uint8_t timer, TimerClock clock);
 
-bool configureTimerMode(Timer timer, TimerMode mode);
+bool configureTimerMode(uint8_t timer, TimerMode mode);
 
 struct TimerConfig
 {
@@ -35,7 +35,7 @@ struct TimerConfig
   uint8_t tccrb;
 };
 
-TimerConfig getTimerConfig(Timer timer);
-void restoreTimerConfig(Timer timer, TimerConfig config);
+TimerConfig getTimerConfig(uint8_t timer);
+void restoreTimerConfig(uint8_t timer, TimerConfig config);
 
 #endif // TIMER_EXT_TIMER_UTIL_H_

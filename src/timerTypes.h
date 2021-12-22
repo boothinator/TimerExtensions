@@ -19,9 +19,44 @@
 
 #include <stdint.h>
 
-enum class Timer {Timer0, Timer1, Timer2, Timer3, Timer4, Timer5};
+#ifndef NOT_ON_TIMER
 
-enum Edge {Rising, Falling};
+#define NOT_ON_TIMER 0
+#define TIMER0A 1
+#define TIMER0B 2
+#define TIMER1A 3
+#define TIMER1B 4
+#define TIMER1C 5
+#define TIMER2  6
+#define TIMER2A 7
+#define TIMER2B 8
+
+#define TIMER3A 9
+#define TIMER3B 10
+#define TIMER3C 11
+#define TIMER4A 12
+#define TIMER4B 13
+#define TIMER4C 14
+#define TIMER4D 15
+#define TIMER5A 16
+#define TIMER5B 17
+#define TIMER5C 18
+
+#endif
+
+#define TIMER0 TIMER0A
+#define TIMER1 TIMER1A
+#define TIMER3 TIMER3A
+#define TIMER4 TIMER4A
+#define TIMER5 TIMER5A
+
+#ifndef CHANGE
+
+#define CHANGE 1
+#define FALLING 2
+#define RISING 3
+
+#endif
 
 typedef uint8_t  ticks8_t;
 typedef uint16_t ticks16_t;

@@ -259,7 +259,7 @@ const PulseGen::PulseState PulseGen::getState()
   return _pulseState;
 }
 
-const Timer PulseGen::getTimer()
+const int PulseGen::getTimer()
 {
   return _tcnt->getTimer();
 }

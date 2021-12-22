@@ -22,7 +22,7 @@
 
 #include "timerTypes.h"
 
-ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk, uint8_t toie, Timer timer) :
+ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk, uint8_t toie, uint8_t timer) :
   _tcntl(tcntl), _tcnth(tcnth), _timsk(timsk), _toie(toie), _timer(timer)
 {
   assert(tcntl);
@@ -143,7 +143,7 @@ void ExtTimer::resetOverflowCount()
   SREG = prevSREG; // restore interrupt state of the caller
 }
 
-Timer ExtTimer::getTimer()
+int ExtTimer::getTimer()
 {
   return _timer;
 }

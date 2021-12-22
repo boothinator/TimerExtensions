@@ -56,7 +56,7 @@ void test_pulse()
   uint8_t timsk;
   uint8_t toie = 0;
   uint8_t ocie = 1;
-  ExtTimer extTimer(ptcntl, ptcnth, &timsk, toie, Timer::Timer0);
+  ExtTimer extTimer(ptcntl, ptcnth, &timsk, toie, TIMER0);
 
   TEST_ASSERT_BIT_HIGH(toie, timsk);
 

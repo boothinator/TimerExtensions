@@ -21,8 +21,8 @@
 
 typedef void (*icpIntFuncPtr)(ticks16_t ticks);
 
-void attachInputCaptureInterrupt(Timer timer, icpIntFuncPtr func, Edge edge);
+void attachInputCaptureInterrupt(uint8_t timer, icpIntFuncPtr func, uint8_t edge);
 
-void detachInputCaptureInterrupt(Timer timer);
+void detachInputCaptureInterrupt(uint8_t timer);
 
 #endif // TIMER_EXT_TIMER_INTERRUPTS_H_
