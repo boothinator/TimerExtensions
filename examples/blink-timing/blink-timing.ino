@@ -61,7 +61,7 @@ void inputCaptureInterrupt(ticks16_t ticks)
 void setup() {
   Serial.begin(115200);
 
-  uint8_t timer = TIMER1;
+  uint8_t timer = inputCapturePinToTimer(8);
   
   // Configure the timer to run at the speed of the system clock
   configureTimerClock(timer, TimerClock::Clk);

@@ -185,6 +185,27 @@ bool configureTimerMode(uint8_t timer, TimerMode mode)
   return false;
 }
 
+uint8_t inputCapturePinToTimer(uint8_t pin)
+{
+  switch (pin)
+  {
+#ifdef ARDUINO_AVR_UNO
+    case 8:
+      return TIMER1;
+#endif
+#ifdef ARDUINO_AVR_MEGA2560
+    case 5:
+      return TIMER3;
+    case 48:
+      return TIMER5;
+    case 49:
+      return TIMER4;
+#endif
+    default:
+      return NOT_ON_TIMER;
+  }
+}
+
 
 TimerConfig getTimerConfig(uint8_t timer)
 {

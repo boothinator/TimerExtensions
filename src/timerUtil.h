@@ -29,6 +29,10 @@ bool configureTimerClock(uint8_t timer, TimerClock clock);
 
 bool configureTimerMode(uint8_t timer, TimerMode mode);
 
+uint8_t inputCapturePinToTimer(uint8_t pin);
+
+//void setInputCaptureNoiseCanceller(uint8_t)
+
 struct TimerConfig
 {
   uint8_t tccra;
