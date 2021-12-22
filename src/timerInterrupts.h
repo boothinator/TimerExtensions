@@ -1,4 +1,4 @@
-// AVR Timer Types
+// Interrupts
 // Copyright (C) 2021  Joshua Booth
 
 // This program is free software: you can redistribute it and/or modify
@@ -14,17 +14,15 @@
 // You should have received a copy of the GNU Lesser Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef TIMER_EXT_TIMER_TYPES_H_
-#define TIMER_EXT_TIMER_TYPES_H_
+#ifndef TIMER_EXT_TIMER_INTERRUPTS_H_
+#define TIMER_EXT_TIMER_INTERRUPTS_H_
 
-#include <stdint.h>
+#include "timerTypes.h"
 
-enum class Timer {Timer0, Timer1, Timer2, Timer3, Timer4, Timer5};
+typedef void (*icpIntFuncPtr)(ticksExtraRange_t ticks);
 
-enum Edge {Rising, Falling};
+void attachInputCaptureInterrupt(Timer timer, icpIntFuncPtr func, Edge edge);
 
-typedef uint8_t  ticks8_t;
-typedef uint16_t ticks16_t;
-typedef uint32_t ticksExtraRange_t;
+void detachInputCaptureInterrupt(Timer timer);
 
-#endif // TIMER_EXT_TIMER_TYPES_H_
+#endif // TIMER_EXT_TIMER_INTERRUPTS_H_
