@@ -21,13 +21,13 @@
 
 #include "timerTypes.h"
 
-enum class TimerClock { None, Clk, ClkDiv8, ClkDiv1024 /* TODO: implement others*/ };
+enum class TimerClock { None, Clk, ClkDiv8, ClkDiv32, ClkDiv64, ClkDiv128, ClkDiv256, ClkDiv1024 };
 
 enum class TimerMode { Normal /* TODO: implement others*/ };
 
-void configureTimerClock(Timer timer, TimerClock clock);
+bool configureTimerClock(Timer timer, TimerClock clock);
 
-void configureTimerMode(Timer timer, TimerMode mode);
+bool configureTimerMode(Timer timer, TimerMode mode);
 
 struct TimerConfig
 {
