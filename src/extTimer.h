@@ -91,6 +91,7 @@ extern ExtTimer ExtTimer5;
 #define ExtTimerPin6 ExtTimer0
 #define ExtTimerPin5 ExtTimer0
 
+#define ExtTimerPin8 ExtTimer1
 #define ExtTimerPin9 ExtTimer1
 #define ExtTimerPin10 ExtTimer1
 
@@ -120,10 +121,12 @@ extern ExtTimer ExtTimer5;
 #define ExtTimerPin6 ExtTimer4
 #define ExtTimerPin7 ExtTimer4
 #define ExtTimerPin8 ExtTimer4
+#define ExtTimerPin49 ExtTimer4
 
 #define ExtTimerPin46 ExtTimer5
 #define ExtTimerPin45 ExtTimer5
 #define ExtTimerPin44 ExtTimer5
+#define ExtTimerPin48 ExtTimer5
 
 #endif // ARDUINO_AVR_MEGA2560
 

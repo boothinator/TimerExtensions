@@ -1,29 +1,36 @@
 #include <timerUtil.h>
 #include <timerInterrupts.h>
+#include <extTimer.h>
 
-ticks16_t prevTicks = 0;
+ticksExtraRange_t prevTicks = 0;
 
 void inputCaptureInterrupt(ticks16_t ticks)
 {
-  Serial.println(ticks - prevTicks);
+  ticksExtraRange_t curTicks = ExtTimerPin8.extendTimeInPast(ticks);
+  
+  if (prevTicks != 0)
+  {
+    Serial.print("Overhead (cycles): ");
+    Serial.println(curTicks - prevTicks - 2 * F_CPU);
+  }
 
-  prevTicks = ticks;
+  prevTicks = curTicks;
 }
 
 void setup() {
   Serial.begin(115200);
 
-  // GetTimer(pin 8)
+  uint8_t timer = TIMER1;
   
   // Configure the timer to run at the speed of the system clock
-  configureTimerClock(TIMER1, TimerClock::ClkDiv1024);
+  configureTimerClock(timer, TimerClock::Clk);
 
   // Put timer in Normal timing mode
-  configureTimerMode(TIMER1, TimerMode::Normal);
+  configureTimerMode(timer, TimerMode::Normal);
   
   pinMode(8, OUTPUT);
 
-  attachInputCaptureInterrupt(TIMER1, inputCaptureInterrupt, RISING);
+  attachInputCaptureInterrupt(timer, inputCaptureInterrupt, RISING);
 }
 
 void loop() {
