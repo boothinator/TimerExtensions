@@ -118,6 +118,33 @@ volatile uint8_t *getTimerTIFR(uint8_t timer)
 
 } // namespace
 
+TimerType getTimerType(uint8_t timer)
+{
+  switch (timer)
+  {
+    case TIMER0:
+      return TimerType::_8Bit;
+    case TIMER1:
+      return TimerType::_16Bit;
+    case TIMER2:
+      return TimerType::_8Bit;
+#ifdef TIFR3A
+    case TIMER3:
+      return TimerType::_16Bit;
+#endif
+#ifdef TIFR4A
+    case TIMER4:
+      return TimerType::_16Bit;
+#endif
+#ifdef TIFR5A
+    case TIMER5:
+      return TimerType::_16Bit;
+#endif
+    default:
+      return TimerType::NotATimer;
+  }
+}
+
 bool configureTimerClock(uint8_t timer, TimerClock clock)
 {
   volatile uint8_t *TCCRB = getTimerTCCRB(timer);
@@ -201,25 +228,100 @@ bool configureTimerClock(uint8_t timer, TimerClock clock)
   return true;
 }
 
-bool configureTimerMode(uint8_t timer, TimerMode mode)
-{
-  volatile uint8_t *TCCRA = getTimerTCCRA(timer);
-  volatile uint8_t *TCCRB = getTimerTCCRB(timer);
+constexpr uint8_t WGM0_TCCRA_8BIT = 0;
+constexpr uint8_t WGM1_TCCRA_8BIT = 1;
+constexpr uint8_t WGM2_TCCRB_8BIT = 3;
 
-  if (!TCCRA)
+bool configureTimerMode8Bit(uint8_t timer, TimerMode mode, TimerResolution resolution)
+{
+  volatile uint8_t *ptccra = getTimerTCCRA(timer);
+  volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  if (!ptccra || !ptccrb)
   {
     return false;
   }
 
+  uint8_t normalTccra = *ptccra & 0b11111100;
+  uint8_t normalTccrb = *ptccrb & 0b11000111;
+
   switch (mode)
   {
     case TimerMode::Normal:
-      *TCCRA = (*TCCRA & 0b11111100);
-      *TCCRB = (*TCCRB & 0b11000111);
+      *ptccra = normalTccra;
+      *ptccrb = normalTccrb;
       return true;
+    case TimerMode::CTC:
+      switch (resolution)
+      {
+        case TimerResolution::OCRA:
+          *ptccra = normalTccra;
+          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_8BIT);
+          return true;
+        default:
+          return false;
+      }
+    default:
+      return false;
+  }
+}
+
+constexpr uint8_t WGM0_TCCRA_16BIT = 0;
+constexpr uint8_t WGM1_TCCRA_16BIT = 1;
+constexpr uint8_t WGM2_TCCRB_16BIT = 3;
+constexpr uint8_t WGM3_TCCRB_16BIT = 4;
+
+bool configureTimerMode16Bit(uint8_t timer, TimerMode mode, TimerResolution resolution)
+{
+  volatile uint8_t *ptccra = getTimerTCCRA(timer);
+  volatile uint8_t *ptccrb = getTimerTCCRB(timer);
+
+  if (!ptccra || !ptccrb)
+  {
+    return false;
   }
 
-  return false;
+  uint8_t normalTccra = *ptccra & 0b11111100;
+  uint8_t normalTccrb = *ptccrb & 0b11000111;
+
+  switch (mode)
+  {
+    case TimerMode::Normal:
+      *ptccra = normalTccra;
+      *ptccrb = normalTccrb;
+      return true;
+    case TimerMode::CTC:
+      switch (resolution)
+      {
+        case TimerResolution::OCRA:
+          *ptccra = normalTccra;
+          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_16BIT);
+          return true;
+        case TimerResolution::ICR:
+          *ptccra = normalTccra;
+          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_16BIT) | _BV(WGM3_TCCRB_16BIT);
+          return true;
+        default:
+          return false;
+      }
+    default:
+      return false;
+  }
+}
+
+bool configureTimerMode(uint8_t timer, TimerMode mode, TimerResolution resolution)
+{
+  TimerType type = getTimerType(timer);
+
+  switch (type)
+  {
+    case TimerType::_8Bit:
+      return configureTimerMode8Bit(timer, mode, resolution);
+    case TimerType::_16Bit:
+      return configureTimerMode16Bit(timer, mode, resolution);
+    default:
+      return false;
+  }
 }
 
 uint8_t inputCapturePinToTimer(uint8_t pin)
@@ -285,7 +387,7 @@ bool hasInputCapture(uint8_t timer)
 
   if (!ptifr)
   {
-    return;
+    return false;
   }
 
   return (*ptifr & _BV(ICF)) == _BV(ICF);
@@ -324,7 +426,7 @@ void setInputCaptureEdge(uint8_t timer, uint8_t edge)
   }
 }
 
-ticks16_t getInputCapture(uint8_t timer, bool clear = true)
+ticks16_t getInputCapture(uint8_t timer, bool clear)
 {
   clearInputCapture(timer);
 
@@ -490,7 +592,7 @@ void restoreTimerConfig(uint8_t timer, TimerConfig config)
 
   if (!ptccra)
   {
-    return {0, 0};
+    return;
   }
 
   uint8_t tccraVal = (*ptccra & 0b11111100) | (config.tccra & 0b00000011);

@@ -23,11 +23,17 @@
 
 enum class TimerClock { None, Clk, ClkDiv8, ClkDiv32, ClkDiv64, ClkDiv128, ClkDiv256, ClkDiv1024 };
 
-enum class TimerMode { Normal /* TODO: implement others*/ };
+enum class TimerMode { Normal, CTC, FastPWM, PWM_PC, PWM_PFC};
+
+enum class TimerResolution { NA, _8Bit, _9Bit, _10Bit, ICR, OCRA };
+
+enum class TimerType { NotATimer, _8Bit, _16Bit };
+
+TimerType getTimerType(uint8_t timer);
 
 bool configureTimerClock(uint8_t timer, TimerClock clock);
 
-bool configureTimerMode(uint8_t timer, TimerMode mode);
+bool configureTimerMode(uint8_t timer, TimerMode mode, TimerResolution resolution = TimerResolution::NA);
 
 uint8_t inputCapturePinToTimer(uint8_t pin);
 
