@@ -261,6 +261,34 @@ bool configureTimerMode8Bit(uint8_t timer, TimerMode mode, TimerResolution resol
         default:
           return false;
       }
+    case TimerMode::FastPWM:
+      switch (resolution)
+      {
+        case TimerResolution::_8Bit:
+          *ptccra = normalTccra | _BV(WGM0_TCCRA_8BIT);
+          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_8BIT);
+          return true;
+        case TimerResolution::OCRA:
+          *ptccra = normalTccra | _BV(WGM1_TCCRA_8BIT) | _BV(WGM0_TCCRA_8BIT);
+          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_8BIT);
+          return true;
+        default:
+          return false;
+      }
+    case TimerMode::PWM_PC:
+      switch (resolution)
+      {
+        case TimerResolution::_8Bit:
+          *ptccra = normalTccra | _BV(WGM0_TCCRA_8BIT);
+          *ptccrb = normalTccrb;
+          return true;
+        case TimerResolution::OCRA:
+          *ptccra = normalTccra | _BV(WGM0_TCCRA_8BIT);
+          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_8BIT);
+          return true;
+        default:
+          return false;
+      }
     default:
       return false;
   }
@@ -299,7 +327,73 @@ bool configureTimerMode16Bit(uint8_t timer, TimerMode mode, TimerResolution reso
           return true;
         case TimerResolution::ICR:
           *ptccra = normalTccra;
-          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_16BIT) | _BV(WGM3_TCCRB_16BIT);
+          *ptccrb = normalTccrb | _BV(WGM3_TCCRB_16BIT) | _BV(WGM2_TCCRB_16BIT);
+          return true;
+        default:
+          return false;
+      }
+    case TimerMode::FastPWM:
+      switch (resolution)
+      {
+        case TimerResolution::_8Bit:
+          *ptccra = normalTccra | _BV(WGM0_TCCRA_16BIT);
+          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_16BIT);
+          return true;
+        case TimerResolution::_9Bit:
+          *ptccra = normalTccra | _BV(WGM1_TCCRA_16BIT);
+          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_16BIT);
+          return true;
+        case TimerResolution::_10Bit:
+          *ptccra = normalTccra | _BV(WGM1_TCCRA_16BIT) | _BV(WGM0_TCCRA_16BIT);
+          *ptccrb = normalTccrb | _BV(WGM2_TCCRB_16BIT);
+          return true;
+        case TimerResolution::ICR:
+          *ptccra = normalTccra | _BV(WGM1_TCCRA_16BIT);
+          *ptccrb = normalTccrb | _BV(WGM3_TCCRB_16BIT) | _BV(WGM2_TCCRB_16BIT);
+          return true;
+        case TimerResolution::OCRA:
+          *ptccra = normalTccra | _BV(WGM1_TCCRA_16BIT) | _BV(WGM0_TCCRA_16BIT);
+          *ptccrb = normalTccrb | _BV(WGM3_TCCRB_16BIT) | _BV(WGM2_TCCRB_16BIT);
+          return true;
+        default:
+          return false;
+      }
+    case TimerMode::PWM_PC:
+      switch (resolution)
+      {
+        case TimerResolution::_8Bit:
+          *ptccra = normalTccra | _BV(WGM0_TCCRA_16BIT);
+          *ptccrb = normalTccrb;
+          return true;
+        case TimerResolution::_9Bit:
+          *ptccra = normalTccra | _BV(WGM1_TCCRA_16BIT);
+          *ptccrb = normalTccrb;
+          return true;
+        case TimerResolution::_10Bit:
+          *ptccra = normalTccra | _BV(WGM1_TCCRA_16BIT) | _BV(WGM0_TCCRA_16BIT);
+          *ptccrb = normalTccrb;
+          return true;
+        case TimerResolution::ICR:
+          *ptccra = normalTccra | _BV(WGM1_TCCRA_16BIT);
+          *ptccrb = normalTccrb | _BV(WGM3_TCCRB_16BIT);
+          return true;
+        case TimerResolution::OCRA:
+          *ptccra = normalTccra | _BV(WGM1_TCCRA_16BIT) | _BV(WGM0_TCCRA_16BIT);
+          *ptccrb = normalTccrb | _BV(WGM3_TCCRB_16BIT);
+          return true;
+        default:
+          return false;
+      }
+    case TimerMode::PWM_PFC:
+      switch (resolution)
+      {
+        case TimerResolution::ICR:
+          *ptccra = normalTccra;
+          *ptccrb = normalTccrb | _BV(WGM3_TCCRB_16BIT);
+          return true;
+        case TimerResolution::OCRA:
+          *ptccra = normalTccra | _BV(WGM0_TCCRA_16BIT);
+          *ptccrb = normalTccrb | _BV(WGM3_TCCRB_16BIT);
           return true;
         default:
           return false;
