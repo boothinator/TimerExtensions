@@ -243,7 +243,7 @@ bool configureTimerMode8Bit(uint8_t timer, TimerMode mode, TimerResolution resol
   }
 
   uint8_t normalTccra = *ptccra & 0b11111100;
-  uint8_t normalTccrb = *ptccrb & 0b11000111;
+  uint8_t normalTccrb = *ptccrb & 0b11110111;
 
   switch (mode)
   {
@@ -282,7 +282,7 @@ bool configureTimerMode16Bit(uint8_t timer, TimerMode mode, TimerResolution reso
   }
 
   uint8_t normalTccra = *ptccra & 0b11111100;
-  uint8_t normalTccrb = *ptccrb & 0b11000111;
+  uint8_t normalTccrb = *ptccrb & 0b11100111;
 
   switch (mode)
   {
