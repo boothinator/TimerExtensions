@@ -29,34 +29,62 @@ timerUtil.h
 TimerUtil provides a number of convenience functions so you don't have to mess with AVR registers.
 Simply use digitalPinToTimer() to find the timer for a pin, or use timer names (TIMER0, TIMER1, etc.) to identify timers.
 
-`configureTimerClock(timer, clock)` - set the clock speed of a timer, relative to the system clock. Note
-that a value of None means that the clock is stopped.
 
-`configureTimerMode(timer, mode)` - change the timer mode.
+```C++
+configureTimerClock(timer, clock)
+```
 
-`setInputCaptureNoiseCancellerEnabled(timer, enabled)
-getInputCaptureNoiseCancellerEnabled(timer)` - Enable or disable the noise canceller for input capture.
+Set the clock speed of a timer, relative to the system clock. Note that a value of None means that the clock is stopped.
+
+```C++
+configureTimerMode(timer, mode)
+```
+
+ - change the timer mode.
+
+```C++
+setInputCaptureNoiseCancellerEnabled(timer, enabled)
+getInputCaptureNoiseCancellerEnabled(timer)
+```
+
+Enable or disable the noise canceller for input capture.
 Adds a 4 clock cycle delay to the input capture.
 
-`hasInputCapture(timer)`
-`clearInputCapture(timer)`
-`setInputCaptureEdge(timer, edge)`
-`getInputCapture(timer)` - Allows you to poll for whether there is an input capture event instead of using
+```C++
+hasInputCapture(timer)
+clearInputCapture(timer)
+setInputCaptureEdge(timer, edge)
+getInputCapture(timer)
+```
+
+Allows you to poll for whether there is an input capture event instead of using
 an interrupt.
 
-`clockCyclesPerTick(clock)`
-`ticksToClockCycles(ticks, clock)`
-`ticksToMilliseconds(ticks, clock)`
-`ticksToMicroseconds(ticks, clock)`
-`clockCyclesToTicks(clockCycles, clock)`
-`millisecondsToTicks(milliseconds, clock)`
-`microsecondsToTicks(microseconds, clock)` - conversion
+```C++
+clockCyclesPerTick(clock)
+ticksToClockCycles(ticks, clock)
+ticksToMilliseconds(ticks, clock)
+ticksToMicroseconds(ticks, clock)
+clockCyclesToTicks(clockCycles, clock)
+millisecondsToTicks(milliseconds, clock)
+microsecondsToTicks(microseconds, clock)
+```
 
-`getTimerValue(timer)`
-`setTimerValue(timer, ticks)` - get and set timer value. Most useful when the clock is stopped.
+Conversion
 
-`getTimerConfig()`
-`restoreTimerConfig(config)` - save and restore the clock setting and mode of a timer. Useful when switching between PWM and Normal mode on the same timer/pin.
+```C++
+getTimerValue(timer)
+setTimerValue(timer, ticks)
+```
+
+Get and set timer value. Most useful when the clock is stopped.
+
+```C++
+getTimerConfig()
+restoreTimerConfig(config)
+```
+
+Save and restore the clock setting and mode of a timer. Useful when switching between PWM and Normal mode on the same timer/pin.
 
 ### ExtTimer
 
@@ -65,7 +93,10 @@ extTimer.h
 ExtTimer extends the range of Arduino's built-in timers.
 
 Ex: 
-`ticksExtraRange_t ticks = ExtTimer1.get();`
+
+```C++
+ticksExtraRange_t ticks = ExtTimer1.get();
+```
 
 ### Input Capture Interrupts
 
@@ -73,8 +104,10 @@ timerInterrupts.h
 
 Similar to Arduino, except that you attach an interrup to a timer, and the function you provde needs to take a uint16_t argument that will hold the input capture value. Note that only 16-bit timers have input capture units.
 
-`attachInputCaptureInterrupt(timer, func, edge)`
-`detachInputCaptureInterrupt(uint8_t timer)`
+```C++
+attachInputCaptureInterrupt(timer, func, edge)
+detachInputCaptureInterrupt(uint8_t timer)
+```
 
 ### PulseGen
 
@@ -82,15 +115,14 @@ pulseGen.h
 
 PulseGen generates precise, jitter-free pulses on PWM pins. Note that this only when a timer's clock is in Normal mode, and the pin is set for output.
 
+Note that PulseGen does not automatically set the pin mode.
+
 Ex: 
-`configureTimerClock(ExtTimerPin11.getTimer(), TimerClock::ClkDiv1024);`
-
-`configureTimerMode(ExtTimerPin11.getTimer(), TimerMode::Normal);`
-
-`pinMode(11, OUTPUT);`
-
-`ticksExtraRange_t nowTicks = ExtTimerPin11.get();`
-
-`PulseGenPin11.setStart(nowTicks + 50000);`
-
-`PulseGenPin11.setEnd(nowTicks + 110000);`
+```C++
+configureTimerClock(ExtTimerPin11.getTimer(), TimerClock::ClkDiv1024);
+configureTimerMode(ExtTimerPin11.getTimer(), TimerMode::Normal);
+pinMode(11, OUTPUT);
+ticksExtraRange_t nowTicks = ExtTimerPin11.get();
+PulseGenPin11.setStart(nowTicks + 50000);
+PulseGenPin11.setEnd(nowTicks + 110000);
+```
