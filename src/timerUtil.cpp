@@ -663,6 +663,28 @@ void setTimerValue(uint8_t timer, ticks16_t ticks)
 }
 
 
+bool setModulatorType(uint8_t pin, ModType mod)
+{
+  switch (pin)
+  {
+#if defined(ARDUINO_AVR_MEGA2560) && defined(PORTB7)
+    case 13:
+      switch (mod)
+      {
+        case ModType::And:
+          PORTB &= ~_BV(PORTB7);
+          return true;
+        case ModType::Or:
+          PORTB |= _BV(PORTB7);
+          return true;
+      }
+#endif
+    default:
+      return false;
+  }
+}
+
+
 TimerConfig getTimerConfig(uint8_t timer)
 {
   volatile uint8_t *ptccra = getTimerTCCRA(timer);

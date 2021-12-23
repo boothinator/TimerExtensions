@@ -58,6 +58,11 @@ ticksExtraRange_t microsecondsToTicks(uint32_t microseconds, TimerClock clock);
 ticks16_t getTimerValue(uint8_t timer);
 void setTimerValue(uint8_t timer, ticks16_t ticks);
 
+
+enum class ModType { And, Or };
+
+bool setModulatorType(uint8_t pin, ModType mod);
+
 struct TimerConfig
 {
   uint8_t tccra;
