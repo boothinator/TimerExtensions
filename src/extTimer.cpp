@@ -118,19 +118,23 @@ ticks16_t ExtTimer::getSysRange() const
 
 uint32_t ExtTimer::getOverflowCount() const
 {
+  ticksExtraRange_t tmp;
+  
 #ifdef timer0_overflow_count
   if (TIMER0 == _timer)
   {
     char prevSREG = SREG;
     cli();
 
-    return timer0_overflow_count;
+    tmp = timer0_overflow_count;
 
     SREG = prevSREG; // restore interrupt state of the caller
+
+    return tmp;
   }
 #endif
 
-  ticksExtraRange_t tmp = getOverflowTicks();
+  tmp = getOverflowTicks();
 
   if (_tcnth)
   {
@@ -188,21 +192,25 @@ void ExtTimer::processOverflow()
 
 ticksExtraRange_t ExtTimer::getOverflowTicks() const
 {
+  ticksExtraRange_t tmp;
+
   char prevSREG = SREG;
   cli();
 
 #ifdef timer0_overflow_count
   if (TIMER0 == _timer)
   {
-    return timer0_overflow_count << 8;
+    tmp = timer0_overflow_count << 8;
   }
   else
   {
-    return _overflowTicks;
+    tmp = _overflowTicks;
   }
 #else
-  return _overflowTicks;
+  tmp = _overflowTicks;
 #endif
 
   SREG = prevSREG; // restore interrupt state of the caller
+
+  return tmp;
 }
