@@ -6,7 +6,7 @@
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/boothinator/ArduinoTimerExtensions.git"
+    "url": "https://github.com/boothinator/TimerExtensions.git"
   },
   "authors":
   [
@@ -16,7 +16,7 @@
     }
   ],
   "license": "LGPL-3.0-or-later",
-  "homepage": "https://github.com/boothinator/ArduinoTimerExtensions",
+  "homepage": "https://github.com/boothinator/TimerExtensions",
   "frameworks": ["arduino"],
   "platforms": "atmelavr"
 }
