@@ -154,12 +154,12 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
   return true;
 }
 
-const ticksExtraRange_t PulseGen::getStart()
+ticksExtraRange_t PulseGen::getStart() const
 {
   return _start;
 }
 
-const ticksExtraRange_t PulseGen::getEnd()
+ticksExtraRange_t PulseGen::getEnd() const
 {
   return _end;
 }
@@ -254,17 +254,17 @@ void PulseGen::scheduleLowState()
 
 // Critical section not needed because PulseState is a single byte
 // and can be retrieved with a single instruction
-const PulseGen::PulseState PulseGen::getState()
+PulseGen::PulseState PulseGen::getState() const
 {
   return _pulseState;
 }
 
-const int PulseGen::getTimer()
+int PulseGen::getTimer() const
 {
   return _tcnt->getTimer();
 }
 
-const ExtTimer *PulseGen::getExtTimer()
+ExtTimer *PulseGen::getExtTimer() const
 {
   return _tcnt;
 }
@@ -312,7 +312,7 @@ bool PulseGen::cancel()
     }
   }
 
-const bool PulseGen::ticksInScheduleRange(ticksExtraRange_t ticks)
+bool PulseGen::ticksInScheduleRange(ticksExtraRange_t ticks) const
 {
   ticksExtraRange_t curTcnt = _tcnt->get();
   ticksExtraRange_t firstTcntAfterRangeEnd;
@@ -332,7 +332,7 @@ const bool PulseGen::ticksInScheduleRange(ticksExtraRange_t ticks)
 }
 
 
-const bool PulseGen::hasTimeToUpdate(ticksExtraRange_t curTicksSetting)
+bool PulseGen::hasTimeToUpdate(ticksExtraRange_t curTicksSetting) const
 {
   if (ticksInRangeExclusive(_tcnt->get(), curTicksSetting - getMinChangeTicks(*_tccrb), curTicksSetting))
   {
@@ -345,7 +345,7 @@ const bool PulseGen::hasTimeToUpdate(ticksExtraRange_t curTicksSetting)
   }
 }
 
-const bool PulseGen::pulseHasStarted()
+bool PulseGen::pulseHasStarted() const
 {
   return ticksInRangeExclusive(_tcnt->get(), _start, _end);
 }
@@ -377,7 +377,7 @@ void PulseGen::setOcr(ticks16_t val)
   
 }
 
-const ticks16_t PulseGen::getCheckTicks(ticksExtraRange_t ticks)
+ticks16_t PulseGen::getCheckTicks(ticksExtraRange_t ticks) const
 {
   // Use the compare interrupt to check if it's time to schedule,
   // but give us plenty of time to schedule by checking

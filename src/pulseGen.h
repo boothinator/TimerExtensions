@@ -32,8 +32,8 @@ public:
   bool setStart(ticksExtraRange_t start);
   bool setEnd(ticksExtraRange_t end);
 
-  const ticksExtraRange_t getStart();
-  const ticksExtraRange_t getEnd();
+  ticksExtraRange_t getStart() const;
+  ticksExtraRange_t getEnd() const;
 
   bool cancel();
 
@@ -41,10 +41,10 @@ public:
 
   enum PulseState : uint8_t {Idle, WaitingToScheduleHigh, ScheduledHigh, WaitingToScheduleLow, ScheduledLow};
 
-  const PulseState getState();
+  PulseState getState() const;
 
-  const int getTimer();
-  const ExtTimer *getExtTimer();
+  int getTimer() const;
+  ExtTimer *getExtTimer() const;
 
   void setStateChangeCallback(stateChangeCallback_t _cb, const void *_cbData = nullptr);
 
@@ -73,15 +73,15 @@ private:
   void scheduleHighState();
   void scheduleLowState();
 
-  const bool ticksInScheduleRange(ticksExtraRange_t ticks);
-  const bool hasTimeToUpdate(ticksExtraRange_t ticks);
-  const bool pulseHasStarted();
+  bool ticksInScheduleRange(ticksExtraRange_t ticks) const;
+  bool hasTimeToUpdate(ticksExtraRange_t ticks) const;
+  bool pulseHasStarted() const;
 
   void updateState();
 
   void setOcr(ticks16_t val);
 
-  const ticks16_t getCheckTicks(ticksExtraRange_t ticks);
+  ticks16_t getCheckTicks(ticksExtraRange_t ticks) const;
 };
 
 #ifdef HAVE_TCNT0
