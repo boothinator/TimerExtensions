@@ -25,10 +25,14 @@
 
 ExtTimer ExtTimer0(&TCNT0, nullptr, &TIMSK0, TOIE0, TIMER0);
 
-/*ISR(TIMER0_OVF_vect)
+#if defined(USE_ARDUINO_TIMER0_OVERFLOW) && !USE_ARDUINO_TIMER0_OVERFLOW
+
+ISR(TIMER0_OVF_vect)
 {
   ExtTimer0.processOverflow();
-}*/
+}
+
+#endif
 
 #endif // HAVE_TCNT0
 

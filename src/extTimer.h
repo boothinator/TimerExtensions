@@ -53,6 +53,8 @@ private:
   uint8_t _toie;
 
   int _timer;
+
+  ticksExtraRange_t getOverflowTicks() const;
 };
 
 #ifdef TCNT0

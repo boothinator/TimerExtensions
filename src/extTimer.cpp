@@ -22,6 +22,12 @@
 
 #include "timerTypes.h"
 
+#if !defined(USE_ARDUINO_TIMER0_OVERFLOW) || USE_ARDUINO_TIMER0_OVERFLOW
+
+extern volatile unsigned long timer0_overflow_count;
+
+#endif
+
 ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk, uint8_t toie, uint8_t timer) :
   _tcntl(tcntl), _tcnth(tcnth), _timsk(timsk), _toie(toie), _timer(timer)
 {
@@ -34,14 +40,14 @@ ticksExtraRange_t ExtTimer::get() const
 {
   ticksExtraRange_t tmp = getSysRange();
   
-  tmp += _overflowTicks;
+  tmp += getOverflowTicks();
 
   return tmp;
 }
 
 ticksExtraRange_t ExtTimer::extend(ticks16_t ticks) const
 {
-  ticksExtraRange_t extTicks = ticks + _overflowTicks;
+  ticksExtraRange_t extTicks = ticks + getOverflowTicks();
 
   // Add another overflow if the ticks is before tcnt.
   // We're assuming that ticks is in the future, so so tcnt needs to roll over to get there.
@@ -64,7 +70,7 @@ ticksExtraRange_t ExtTimer::extend(ticks16_t ticks) const
 
 ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks) const
 {
-  ticksExtraRange_t extTicks = ticks + _overflowTicks;
+  ticksExtraRange_t extTicks = ticks + getOverflowTicks();
 
   // Subtract another overflow if the ticks is after tcnt.
   // We're assuming that ticks is in the past, so so tcnt would have rolled over to get here.
@@ -112,12 +118,19 @@ ticks16_t ExtTimer::getSysRange() const
 
 uint32_t ExtTimer::getOverflowCount() const
 {
-  char prevSREG = SREG;
-  cli();
+#ifdef timer0_overflow_count
+  if (TIMER0 == _timer)
+  {
+    char prevSREG = SREG;
+    cli();
 
-  ticksExtraRange_t tmp = _overflowTicks;
+    return timer0_overflow_count;
 
-  SREG = prevSREG; // restore interrupt state of the caller
+    SREG = prevSREG; // restore interrupt state of the caller
+  }
+#endif
+
+  ticksExtraRange_t tmp = getOverflowTicks();
 
   if (_tcnth)
   {
@@ -138,7 +151,18 @@ void ExtTimer::resetOverflowCount()
   char prevSREG = SREG;
   cli();
 
+#ifdef timer0_overflow_count
+  if (TIMER0 == _timer)
+  {
+    timer0_overflow_count = 0;
+  }
+  else
+  {
+    _overflowTicks = 0;
+  }
+#else
   _overflowTicks = 0;
+#endif
 
   SREG = prevSREG; // restore interrupt state of the caller
 }
@@ -160,4 +184,25 @@ void ExtTimer::processOverflow()
     // add 256 to the overflow ticks counter on overflow for 8-bit timers
     _overflowTicks += (1UL << 8);
   }
+}
+
+ticksExtraRange_t ExtTimer::getOverflowTicks() const
+{
+  char prevSREG = SREG;
+  cli();
+
+#ifdef timer0_overflow_count
+  if (TIMER0 == _timer)
+  {
+    return timer0_overflow_count << 8;
+  }
+  else
+  {
+    return _overflowTicks;
+  }
+#else
+  return _overflowTicks;
+#endif
+
+  SREG = prevSREG; // restore interrupt state of the caller
 }
