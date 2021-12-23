@@ -26,17 +26,17 @@ class ExtTimer
 public:
   ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk, uint8_t toie, uint8_t timer);
   
-  const ticksExtraRange_t get();
+  ticksExtraRange_t get() const;
 
   // Extend the range of the passed-in ticks
   // Assumes that ticks is in the future
-  const ticksExtraRange_t extend(ticks16_t ticks);
+  ticksExtraRange_t extend(ticks16_t ticks) const;
 
-  const ticksExtraRange_t extendTimeInPast(ticks16_t ticks);
+  ticksExtraRange_t extendTimeInPast(ticks16_t ticks) const;
 
-  const ticks16_t getSysRange();
+  ticks16_t getSysRange() const;
 
-  const uint16_t getOverflowCount();
+  uint32_t getOverflowCount() const;
   void resetOverflowCount();
 
   int getTimer();

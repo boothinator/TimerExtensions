@@ -30,7 +30,7 @@ ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile ui
   *_timsk |= _BV(_toie);
 }
 
-const ticksExtraRange_t ExtTimer::get()
+ticksExtraRange_t ExtTimer::get() const
 {
   ticksExtraRange_t tmp = getSysRange();
   
@@ -39,7 +39,7 @@ const ticksExtraRange_t ExtTimer::get()
   return tmp;
 }
 
-const ticksExtraRange_t ExtTimer::extend(ticks16_t ticks)
+ticksExtraRange_t ExtTimer::extend(ticks16_t ticks) const
 {
   ticksExtraRange_t extTicks = ticks + _overflowTicks;
 
@@ -62,7 +62,7 @@ const ticksExtraRange_t ExtTimer::extend(ticks16_t ticks)
   return extTicks;
 }
 
-const ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks)
+ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks) const
 {
   ticksExtraRange_t extTicks = ticks + _overflowTicks;
 
@@ -85,7 +85,7 @@ const ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks)
   return extTicks;
 }
 
-const ticks16_t ExtTimer::getSysRange()
+ticks16_t ExtTimer::getSysRange() const
 {
   if (_tcnth)
   {
@@ -110,7 +110,7 @@ const ticks16_t ExtTimer::getSysRange()
   }
 }
 
-const uint16_t ExtTimer::getOverflowCount()
+uint32_t ExtTimer::getOverflowCount() const
 {
   char prevSREG = SREG;
   cli();
