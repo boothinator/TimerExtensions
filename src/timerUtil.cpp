@@ -128,15 +128,15 @@ TimerType getTimerType(uint8_t timer)
       return TimerType::_16Bit;
     case TIMER2:
       return TimerType::_8Bit;
-#ifdef TIFR3A
+#ifdef TIFR3
     case TIMER3:
       return TimerType::_16Bit;
 #endif
-#ifdef TIFR4A
+#ifdef TIFR4
     case TIMER4:
       return TimerType::_16Bit;
 #endif
-#ifdef TIFR5A
+#ifdef TIFR5
     case TIMER5:
       return TimerType::_16Bit;
 #endif
