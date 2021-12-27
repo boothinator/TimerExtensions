@@ -684,6 +684,38 @@ bool setModulatorType(uint8_t pin, ModType mod)
   }
 }
 
+void resetSynchronousPrescaler()
+{
+  GTCCR |= _BV(PSRSYNC);
+}
+
+void resetAsynchronousPrescaler()
+{
+  GTCCR |= _BV(PSRASY);
+}
+
+void setTimerSynchronizationModeEnabled(bool enabled)
+{
+  if (enabled)
+  {
+    GTCCR |= _BV(TSM);
+  }
+  else
+  {
+    GTCCR &= ~_BV(TSM);
+  }
+}
+
+void stopAllTimersAndSynchronize()
+{
+  GTCCR |= _BV(TSM) | _BV(PSRASY) | _BV(PSRSYNC);
+}
+
+void startAllTimers()
+{
+  GTCCR &= ~_BV(TSM);
+}
+
 
 TimerConfig getTimerConfig(uint8_t timer)
 {

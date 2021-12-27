@@ -55,6 +55,12 @@ an interrupt.
 `getTimerValue(timer)`
 `setTimerValue(timer, ticks)` - get and set timer value. Most useful when the clock is stopped.
 
+`resetSynchronousPrescaler()`
+`resetAsynchronousPrescaler()`
+`setTimerSynchronizationModeEnabled(bool enabled)`
+`stopAllTimersAndSynchronize()`
+`startAllTimers()` - Reset and synchronized timers
+
 `getTimerConfig()`
 `restoreTimerConfig(config)` - save and restore the clock setting and mode of a timer. Useful when switching between PWM and Normal mode on the same timer/pin.
 

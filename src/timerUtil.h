@@ -63,6 +63,13 @@ enum class ModType { And, Or };
 
 bool setModulatorType(uint8_t pin, ModType mod);
 
+void resetSynchronousPrescaler();
+void resetAsynchronousPrescaler();
+void setTimerSynchronizationModeEnabled(bool enabled);
+
+void stopAllTimersAndSynchronize();
+void startAllTimers();
+
 struct TimerConfig
 {
   uint8_t tccra;
