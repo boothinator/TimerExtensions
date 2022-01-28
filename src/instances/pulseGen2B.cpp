@@ -24,6 +24,8 @@
 
 #include "extTimer.h"
 
+#ifdef OCR2B
+
 // Note: The Force Output Compare bits are on TCCRxB for 8-bit counters, but
 // they're on TCCRxC for 16-bit counters
 PulseGen PulseGen2B(&OCR2B, nullptr, &TCCR2A, &TCCR2B, &TCCR2B, &TIMSK2, COM2B1, COM2B0, FOC2B, OCIE2B, &ExtTimer0);
@@ -32,5 +34,7 @@ ISR(TIMER2_COMPB_vect)
 {
   PulseGen2B.processCompareEvent();
 }
+
+#endif
 
 #endif // TIMER_EXT_PULSE_GEN2B_H_

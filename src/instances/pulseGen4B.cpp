@@ -24,7 +24,7 @@
 
 #include "extTimer.h"
 
-#ifdef OCR4B
+#if defined(OCR4B) && defined(OCR4BL)
 
 PulseGen PulseGen4B(&OCR4BL, &OCR4BH, &TCCR4A, &TCCR4B, &TCCR4C, &TIMSK4, COM4B1, COM4B0, FOC4B, OCIE4B, &ExtTimer4);
 
