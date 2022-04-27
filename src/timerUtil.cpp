@@ -35,10 +35,12 @@ volatile uint8_t *getTimerTCCRA(uint8_t timer)
     case TIMER1B:
     case TIMER1C:
       return &TCCR1A;
+#ifdef TCCR2A
     case TIMER2:
     case TIMER2A:
     case TIMER2B:
       return &TCCR2A;
+#endif
 #ifdef TCCR3A
     case TIMER3:
     case TIMER3B:
@@ -70,8 +72,10 @@ volatile uint8_t *getTimerTCCRB(uint8_t timer)
       return &TCCR0B;
     case TIMER1:
       return &TCCR1B;
+#ifdef TCCR2A
     case TIMER2:
       return &TCCR2B;
+#endif
 #ifdef TCCR3A
     case TIMER3:
       return &TCCR3B;
@@ -97,8 +101,10 @@ volatile uint8_t *getTimerTIFR(uint8_t timer)
       return &TIFR0;
     case TIMER1:
       return &TIFR1;
+#ifdef TIFR2A
     case TIMER2:
       return &TIFR2;
+#endif
 #ifdef TIFR3A
     case TIMER3:
       return &TIFR3;
@@ -610,8 +616,10 @@ ticks16_t getTimerValue(uint8_t timer)
       return TCNT0;
     case TIMER1:
       return TCNT1;
+#ifdef TCNT2A
     case TIMER2:
       return TCNT2;
+#endif
 #ifdef TCNT3A
     case TIMER3:
       return TCNT3;
@@ -639,9 +647,11 @@ void setTimerValue(uint8_t timer, ticks16_t ticks)
     case TIMER1:
       TCNT1 = ticks;
       break;
+#ifdef TCNT2A
     case TIMER2:
       TCNT2 = ticks;
       break;
+#endif
 #ifdef TCNT3A
     case TIMER3:
       TCNT3 = ticks;
