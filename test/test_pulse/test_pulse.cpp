@@ -18,6 +18,7 @@
 #include <unity.h>
 
 #include <pulseGen.h>
+#include <timerInterrupts.h>
 
 #define MAX_MESSAGE_LEN 255
 
@@ -172,9 +173,9 @@ void test_pulse()
 volatile bool capt = false;
 volatile uint16_t captVal;
 
-ISR(TIMER5_CAPT_vect)
+void captureInterrupt(uint16_t ticks)
 {
-  captVal = ICR5;
+  captVal = ticks;
   capt = true;
 }
 
@@ -183,6 +184,8 @@ void test_pulse_real()
   pinMode(46, OUTPUT);
   pinMode(48, INPUT);
   digitalWrite(46, LOW);
+
+  attachInputCaptureInterrupt(TIMER5, captureInterrupt, RISING);
 
   // Reset all counter settings
   // Normal counting mode, no output change on compare
@@ -277,6 +280,8 @@ void test_pulse_real()
   TEST_ASSERT_EQUAL(PulseGen::PulseState::Idle, PulseGen5A.getState());
   TEST_ASSERT_BIT_HIGH(COM5A1, TCCR5A);
   TEST_ASSERT_BIT_LOW(COM5A0, TCCR5A);
+
+  detachInputCaptureInterrupt(TIMER5);
 }
 
 bool icpConnected()
