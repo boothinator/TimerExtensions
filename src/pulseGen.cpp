@@ -189,15 +189,17 @@ void PulseGen::updateState()
     // Use the compare interrupt to check if it's time to schedule
     setOcr(getCheckTicks(_end));
 
-    _pulseState = PulseState::WaitingToScheduleLow;
-    if (_cb)
-    {
-      _cb(this, const_cast<void *>(_cbData));
-    }
-
     if (ticksInScheduleRange(_end))
     {
       scheduleLowState();
+    }
+    else
+    {
+      _pulseState = PulseState::WaitingToScheduleLow;
+      if (_cb)
+      {
+        _cb(this, const_cast<void *>(_cbData));
+      }
     }
   }
   else if (PulseState::WaitingToScheduleLow == _pulseState)
