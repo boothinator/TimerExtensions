@@ -19,6 +19,7 @@
 
 #include <pulseGen.h>
 #include <timerInterrupts.h>
+#include <timerUtil.h>
 
 #define MAX_MESSAGE_LEN 255
 
@@ -185,13 +186,11 @@ void test_pulse_real()
   pinMode(48, INPUT);
   digitalWrite(46, LOW);
 
-  attachInputCaptureInterrupt(TIMER5, captureInterrupt, RISING);
-
-  // Reset all counter settings
-  // Normal counting mode, no output change on compare
   // Stop timer
-  TCCR5A = 0;
-  TCCR5B = 0;
+  configureTimerClock(TIMER5, TimerClock::None);
+
+  // Normal counting mode
+  configureTimerMode(TIMER5, TimerMode::Normal);
 
   // Reset timer
   TCNT5 = 0;
@@ -199,11 +198,11 @@ void test_pulse_real()
 
   PulseGen5A.setStateChangeCallback(stateChangeCallback);
 
-  // Enable output compare interrupts
-  TIMSK5 |= /*_BV(OCIE5A) | _BV(TOIE5) |*/ _BV(ICIE5);
+  // Enable input compare interrupts
+  attachInputCaptureInterrupt(TIMER5, captureInterrupt, RISING);
 
-  // Use clk/1024 prescaler and start timer
-  TCCR5B |= (_BV(CS52) | _BV(CS50));
+  // Use clk prescaler and start timer
+  configureTimerClock(TIMER5, TimerClock::Clk);
 
   // Schedule for two overflows into the future
   ticksExtraRange_t start = (2UL << 17);
@@ -245,7 +244,7 @@ void test_pulse_real()
   TEST_ASSERT_TRUE(capt);
   capt = false;
 
-  TEST_ASSERT_UINT16_WITHIN(1, start, captVal);
+  TEST_ASSERT_UINT16_WITHIN(2, start, captVal);
 
   TEST_ASSERT_EQUAL(PulseGen::PulseState::WaitingToScheduleLow, PulseGen5A.getState());
   TEST_ASSERT_EQUAL(HIGH, digitalRead(48));
@@ -274,7 +273,7 @@ void test_pulse_real()
   TEST_ASSERT_TRUE(capt);
   capt = false;
 
-  TEST_ASSERT_UINT16_WITHIN(1, end, captVal);
+  TEST_ASSERT_UINT16_WITHIN(2, end, captVal);
 
   TEST_ASSERT_EQUAL(LOW, digitalRead(48));
   TEST_ASSERT_EQUAL(PulseGen::PulseState::Idle, PulseGen5A.getState());
