@@ -84,11 +84,11 @@ PulseGen::PulseGen(volatile uint8_t *ocrl, volatile uint8_t *ocrh,
   assert(_ocrl && _tccra && _tccrb && _tccrc && _tcnt);
 }
 
-bool PulseGen::setStart(ticksExtraRange_t _start)
+bool PulseGen::setStart(ticksExtraRange_t start)
 {
   // Not enough time to update, or we've already gone high
   if ((PulseState::WaitingToScheduleHigh == _pulseState || PulseState::ScheduledHigh == _pulseState)
-    && hasTimeToUpdate(_start) == false)
+    && hasTimeToUpdate(start) == false)
   {
     return false;
   }
@@ -96,23 +96,23 @@ bool PulseGen::setStart(ticksExtraRange_t _start)
   char prevSREG = SREG;
   cli();
 
-  this->_start = _start;
+  this->_start = start;
 
   SREG = prevSREG; // restore interrupt state of the caller
 
   return true;
 }
 
-bool PulseGen::setEnd(ticksExtraRange_t _end)
+bool PulseGen::setEnd(ticksExtraRange_t end)
 {
   // Not enough time to update
-  if (hasTimeToUpdate(_end) == false)
+  if (hasTimeToUpdate(end) == false)
   {
     return false;
   }
 
   // Can't respond to interrupt fast enough to schedule the end time
-  if ((_end - _start) < getMinChangeTicks(*_tccrb))
+  if ((end - _start) < getMinChangeTicks(*_tccrb))
   {
     return false;
   }
@@ -120,38 +120,35 @@ bool PulseGen::setEnd(ticksExtraRange_t _end)
   char prevSREG = SREG;
   cli();
 
-  this->_end = _end;
-
-  // Only change state if idle
-  if (PulseState::Idle == _pulseState)
-  {
-
-    // Set to clear bit on compare
-    // Ensure that whole register gets set at the same time
-    uint8_t tmp = (*_tccra | _BV(_com1)) & ~_BV(_com0);
-    *_tccra = tmp;
-
-    // Force output compare to ensure it's low
-    *_tccrc |= _BV(_foc);
-
-    // Use the compare interrupt to check if it's time to schedule
-    setOcr(getCheckTicks(_start));
-
-    // Enable OCR interrupt
-    *_timsk |= _BV(_ocie);
-
-    _pulseState = PulseState::WaitingToScheduleHigh;
-    if (_cb)
-    {
-      _cb(this, const_cast<void *>(_cbData));
-    }
-
-    updateState();
-  }
+  this->_end = end;
 
   SREG = prevSREG; // restore interrupt state of the caller
 
   return true;
+}
+
+
+void PulseGen::schedule()
+{
+  char prevSREG = SREG;
+  cli();
+
+  scheduleInternal();
+
+  SREG = prevSREG; // restore interrupt state of the caller
+}
+
+void PulseGen::schedule(ticksExtraRange_t start, ticksExtraRange_t end)
+{
+  char prevSREG = SREG;
+  cli();
+
+  this->_start = start;
+  this->_end = end;
+
+  scheduleInternal();
+
+  SREG = prevSREG; // restore interrupt state of the caller
 }
 
 ticksExtraRange_t PulseGen::getStart() const
@@ -221,6 +218,37 @@ void PulseGen::updateState()
     {
       _cb(this, const_cast<void *>(_cbData));
     }
+  }
+}
+
+// Must be called from ISR or in critical section
+void PulseGen::scheduleInternal()
+{
+  // Only change state if idle
+  if (PulseState::Idle == _pulseState)
+  {
+
+    // Set to clear bit on compare
+    // Ensure that whole register gets set at the same time
+    uint8_t tmp = (*_tccra | _BV(_com1)) & ~_BV(_com0);
+    *_tccra = tmp;
+
+    // Force output compare to ensure it's low
+    *_tccrc |= _BV(_foc);
+
+    // Use the compare interrupt to check if it's time to schedule
+    setOcr(getCheckTicks(_start));
+
+    // Enable OCR interrupt
+    *_timsk |= _BV(_ocie);
+
+    _pulseState = PulseState::WaitingToScheduleHigh;
+    if (_cb)
+    {
+      _cb(this, const_cast<void *>(_cbData));
+    }
+
+    updateState();
   }
 }
 

@@ -84,6 +84,7 @@ void test_pulse()
   startTime = micros();
   TEST_ASSERT_TRUE(pulse.setEnd(endTicks));
   endTime = micros();
+  pulse.schedule();
   
   //Serial.print("Microseconds for pulse.setEnd(endTicks): ");
   //Serial.println(endTime - startTime);
@@ -106,6 +107,7 @@ void test_pulse()
 
   // Verify that we can update the end because
   bool endUpdated = pulse.setEnd(endTicks);
+  pulse.schedule();
   TEST_ASSERT_TRUE(endUpdated);
   TEST_ASSERT_BIT_HIGH(SREG_I, SREG);
   TEST_ASSERT_EQUAL_UINT8(PulseGen::PulseState::ScheduledHigh, pulse.getState());
@@ -138,6 +140,7 @@ void test_pulse()
   tcnt = endTicks - 1;
 
   endUpdated = pulse.setEnd(endTicks + 1);
+  pulse.schedule();
   TEST_ASSERT_FALSE(endUpdated);
   TEST_ASSERT_BIT_HIGH(SREG_I, SREG);
   TEST_ASSERT_EQUAL_UINT8(PulseGen::PulseState::ScheduledLow, pulse.getState());
@@ -213,6 +216,7 @@ void test_pulse_real()
   
   TEST_ASSERT_TRUE(PulseGen5A.setStart(start));
   TEST_ASSERT_TRUE(PulseGen5A.setEnd(end));
+  PulseGen5A.schedule();
 
   TEST_ASSERT_BIT_HIGH(COM5A1, TCCR5A);
   TEST_ASSERT_BIT_LOW(COM5A0, TCCR5A);
@@ -303,14 +307,28 @@ bool icpConnected()
   return true;
 }
 
+volatile ticksExtraRange_t scheduleStart = 0;
+volatile ticksExtraRange_t scheduleMid = 0;
+volatile ticksExtraRange_t scheduleEnd = 0;
 volatile int pulseCount = 0;
 const ticksExtraRange_t halfPeriod = 500;
+volatile bool justAutoScheduled = false;
+volatile bool waitingToScheduleHigh = false;
+volatile bool scheduledHigh = false;
+volatile bool waitingToScheduleLow = false;
+volatile bool scheduledLow = false;
 
 void schedulePulse()
 {
-  TEST_ASSERT_TRUE(PulseGen5A.setStart(PulseGen5A.getEnd() + halfPeriod));
-  TEST_ASSERT_TRUE(PulseGen5A.setEnd(PulseGen5A.getStart() + halfPeriod));
+  scheduleStart = ExtTimer5.get();
+  //TEST_ASSERT_TRUE(PulseGen5A.setStart(PulseGen5A.getEnd() + halfPeriod));
+  scheduleMid = ExtTimer5.get();
+  //TEST_ASSERT_TRUE(PulseGen5A.setEnd(PulseGen5A.getStart() + halfPeriod));
+  ticksExtraRange_t endTicks = PulseGen5A.getEnd();
+  Serial.println(endTicks);
+  PulseGen5A.schedule(endTicks + halfPeriod, endTicks + 2*halfPeriod);
   pulseCount++;
+  scheduleEnd = ExtTimer5.get();
 }
 
 void autoScheduleStateChangeCB(PulseGen *pulse, void *data)
@@ -318,6 +336,23 @@ void autoScheduleStateChangeCB(PulseGen *pulse, void *data)
   if (pulse->getState() == pulse->Idle)
   {
     schedulePulse();
+    justAutoScheduled = true;
+  }
+  else if (pulse->getState() == pulse->WaitingToScheduleHigh)
+  {
+    waitingToScheduleHigh = true;
+  }
+  else if (pulse->getState() == pulse->ScheduledHigh)
+  {
+    scheduledHigh = true;
+  }
+  else if (pulse->getState() == pulse->WaitingToScheduleLow)
+  {
+    waitingToScheduleLow = true;
+  }
+  else if (pulse->getState() == pulse->ScheduledLow)
+  {
+    scheduledLow = true;
   }
 }
 
@@ -339,12 +374,37 @@ void test_pulse_auto_schedule()
 
   TEST_ASSERT_TRUE(PulseGen5A.setStart(ExtTimer5.get() + halfPeriod));
   TEST_ASSERT_TRUE(PulseGen5A.setEnd(ExtTimer5.get() + 2*halfPeriod));
+  PulseGen5A.schedule();
 
   // Run timer
   configureTimerClock(TIMER5, TimerClock::Clk);
 
   while(pulseCount < expectedPulseCount && ExtTimer5.get() < expectedPulseCount * halfPeriod * 2)
   {
+    if (justAutoScheduled)
+    {
+      Serial.print("start ");
+      Serial.println(PulseGen5A.getStart());
+      Serial.print("end ");
+      Serial.println(PulseGen5A.getEnd());
+      Serial.print("scheduleStart ");
+      Serial.println(scheduleStart);
+      Serial.print("scheduleMid ");
+      Serial.println(scheduleMid);
+      Serial.print("scheduleEnd ");
+      Serial.println(scheduleEnd);
+      TEST_ASSERT_EQUAL(PulseGen::ScheduledHigh, PulseGen5A.getState());
+
+      TEST_ASSERT_TRUE(waitingToScheduleHigh);
+
+      TEST_ASSERT_TRUE(scheduledHigh);
+
+      waitingToScheduleHigh = false;
+      scheduledHigh = false;
+      waitingToScheduleLow = false;
+      scheduledLow = false;
+      justAutoScheduled = false;
+    }
   }
 
   TEST_ASSERT_GREATER_OR_EQUAL(expectedPulseCount, pulseCount);
