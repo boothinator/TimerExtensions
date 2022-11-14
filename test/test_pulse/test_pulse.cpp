@@ -303,6 +303,53 @@ bool icpConnected()
   return true;
 }
 
+volatile int pulseCount = 0;
+const ticksExtraRange_t halfPeriod = 500;
+
+void schedulePulse()
+{
+  TEST_ASSERT_TRUE(PulseGen5A.setStart(PulseGen5A.getEnd() + halfPeriod));
+  TEST_ASSERT_TRUE(PulseGen5A.setEnd(PulseGen5A.getStart() + halfPeriod));
+  pulseCount++;
+}
+
+void autoScheduleStateChangeCB(PulseGen *pulse, void *data)
+{
+  if (pulse->getState() == pulse->Idle)
+  {
+    schedulePulse();
+  }
+}
+
+void test_pulse_auto_schedule()
+{
+  const int expectedPulseCount = 10;
+
+  // Stop timer
+  configureTimerClock(TIMER5, TimerClock::None);
+
+  // Normal counting mode
+  configureTimerMode(TIMER5, TimerMode::Normal);
+
+  // Reset timer
+  TCNT5 = 0;
+  ExtTimer5.resetOverflowCount();
+
+  PulseGen5A.setStateChangeCallback(autoScheduleStateChangeCB);
+
+  TEST_ASSERT_TRUE(PulseGen5A.setStart(ExtTimer5.get() + halfPeriod));
+  TEST_ASSERT_TRUE(PulseGen5A.setEnd(ExtTimer5.get() + 2*halfPeriod));
+
+  // Run timer
+  configureTimerClock(TIMER5, TimerClock::Clk);
+
+  while(pulseCount < expectedPulseCount && ExtTimer5.get() < expectedPulseCount * halfPeriod * 2)
+  {
+  }
+
+  TEST_ASSERT_GREATER_OR_EQUAL(expectedPulseCount, pulseCount);
+}
+
 void test_icp_connected()
 {
   pinMode(46, INPUT);
@@ -334,6 +381,7 @@ void setup() {
 
   RUN_TEST(test_pulse);
   RUN_TEST(test_pulse_real);
+  RUN_TEST(test_pulse_auto_schedule);
 
   // TODO: test when extended timer overflows
 
