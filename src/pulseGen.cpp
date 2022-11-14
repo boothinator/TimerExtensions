@@ -128,27 +128,35 @@ bool PulseGen::setEnd(ticksExtraRange_t end)
 }
 
 
-void PulseGen::schedule()
+bool PulseGen::schedule()
 {
+  bool ret;
+
   char prevSREG = SREG;
   cli();
 
-  scheduleInternal();
+  ret = scheduleInternal();
 
   SREG = prevSREG; // restore interrupt state of the caller
+
+  return ret;
 }
 
-void PulseGen::schedule(ticksExtraRange_t start, ticksExtraRange_t end)
+bool PulseGen::schedule(ticksExtraRange_t start, ticksExtraRange_t end)
 {
+  bool ret;
+
   char prevSREG = SREG;
   cli();
 
   this->_start = start;
   this->_end = end;
 
-  scheduleInternal();
+  ret = scheduleInternal();
 
   SREG = prevSREG; // restore interrupt state of the caller
+
+  return ret;
 }
 
 ticksExtraRange_t PulseGen::getStart() const
@@ -222,7 +230,7 @@ void PulseGen::updateState()
 }
 
 // Must be called from ISR or in critical section
-void PulseGen::scheduleInternal()
+bool PulseGen::scheduleInternal()
 {
   // Only change state if idle
   if (PulseState::Idle == _pulseState)
@@ -249,6 +257,11 @@ void PulseGen::scheduleInternal()
     }
 
     updateState();
+    return true;
+  }
+  else
+  {
+    return false;
   }
 }
 

@@ -325,8 +325,7 @@ void schedulePulse()
   scheduleMid = ExtTimer5.get();
   //TEST_ASSERT_TRUE(PulseGen5A.setEnd(PulseGen5A.getStart() + halfPeriod));
   ticksExtraRange_t endTicks = PulseGen5A.getEnd();
-  Serial.println(endTicks);
-  PulseGen5A.schedule(endTicks + halfPeriod, endTicks + 2*halfPeriod);
+  TEST_ASSERT_TRUE(PulseGen5A.schedule(endTicks + halfPeriod, endTicks + 2*halfPeriod));
   pulseCount++;
   scheduleEnd = ExtTimer5.get();
 }
@@ -374,7 +373,7 @@ void test_pulse_auto_schedule()
 
   TEST_ASSERT_TRUE(PulseGen5A.setStart(ExtTimer5.get() + halfPeriod));
   TEST_ASSERT_TRUE(PulseGen5A.setEnd(ExtTimer5.get() + 2*halfPeriod));
-  PulseGen5A.schedule();
+  TEST_ASSERT_TRUE(PulseGen5A.schedule());
 
   // Run timer
   configureTimerClock(TIMER5, TimerClock::Clk);
@@ -393,7 +392,7 @@ void test_pulse_auto_schedule()
       Serial.println(scheduleMid);
       Serial.print("scheduleEnd ");
       Serial.println(scheduleEnd);
-      TEST_ASSERT_EQUAL(PulseGen::ScheduledHigh, PulseGen5A.getState());
+      TEST_ASSERT_EQUAL(PulseGen::WaitingToScheduleHigh, PulseGen5A.getState());
 
       TEST_ASSERT_TRUE(waitingToScheduleHigh);
 

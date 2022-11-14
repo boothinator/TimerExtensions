@@ -32,8 +32,8 @@ public:
   bool setStart(ticksExtraRange_t start);
   bool setEnd(ticksExtraRange_t end);
 
-  void schedule();
-  void schedule(ticksExtraRange_t start, ticksExtraRange_t end);
+  bool schedule();
+  bool schedule(ticksExtraRange_t start, ticksExtraRange_t end);
 
   ticksExtraRange_t getStart() const;
   ticksExtraRange_t getEnd() const;
@@ -73,7 +73,7 @@ private:
   volatile ticksExtraRange_t _start;
   volatile ticksExtraRange_t _end;
 
-  void scheduleInternal();
+  bool scheduleInternal();
   void scheduleHighState();
   void scheduleLowState();
 
