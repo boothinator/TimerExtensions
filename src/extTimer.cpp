@@ -38,11 +38,25 @@ ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile ui
 
 ticksExtraRange_t ExtTimer::get() const
 {
-  ticksExtraRange_t tmp = getSysRange();
-  
-  tmp += getOverflowTicks();
+  // Prevent overflow ticks from incrementing
+  char prevSREG = SREG;
+  cli();
 
-  return tmp;
+  ticksExtraRange_t ovf = getOverflowTicks();
+
+  ticks16_t sys = getSysRange();
+
+  SREG = prevSREG; // restore interrupt state of the caller
+
+  // Handle overflow
+  if (sys > getSysRange())
+  {
+    return sys + ovf + (1 << 16);
+  }
+  else
+  {
+    return sys + ovf;
+  }
 }
 
 ticksExtraRange_t ExtTimer::extend(ticks16_t ticks) const
