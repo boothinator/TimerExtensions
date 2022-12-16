@@ -51,7 +51,7 @@ ticksExtraRange_t ExtTimer::get() const
   // Handle overflow
   if (sys > getSysRange())
   {
-    return sys + ovf + (1 << 16);
+    return sys + ovf + (1ul << 16);
   }
   else
   {
