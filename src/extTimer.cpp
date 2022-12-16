@@ -62,6 +62,33 @@ ticksExtraRange_t ExtTimer::get() const
   }
 }
 
+void ExtTimer::set(ticksExtraRange_t ticks)
+{
+  char prevSREG = SREG;
+  cli();
+
+  if (_tcnth)
+  {
+    // 16-bit timer
+    _overflowTicks = ticks & 0xFFFF0000;
+
+    // Follow correct 16-bit register access rules by setting the high register first
+    *_tcnth = (uint8_t)(ticks & 0x0000FF00) >> 8;
+    *_tcntl = (uint8_t)ticks;
+  }
+  else
+  {
+    // 8-bit timer
+    _overflowTicks = ticks & 0xFFFFFF00;
+    *_tcntl = (uint8_t)ticks;
+  }
+
+  // Clear overflow flag
+  *_tifr = (1 << _tov);
+
+  SREG = prevSREG; // restore interrupt state of the caller
+}
+
 ticksExtraRange_t ExtTimer::extend(ticks16_t ticks) const
 {
   ticksExtraRange_t extTicks = ticks + getOverflowTicks();

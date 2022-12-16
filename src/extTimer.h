@@ -28,6 +28,7 @@ public:
     uint8_t toie, volatile uint8_t *tifr, uint8_t tov, uint8_t timer);
   
   ticksExtraRange_t get() const;
+  void set(ticksExtraRange_t ticks);
 
   // Extend the range of the passed-in ticks
   // Assumes that ticks is in the future
