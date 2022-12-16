@@ -28,8 +28,10 @@ extern volatile unsigned long timer0_overflow_count;
 
 #endif
 
-ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk, uint8_t toie, uint8_t timer) :
-  _tcntl(tcntl), _tcnth(tcnth), _timsk(timsk), _toie(toie), _timer(timer)
+ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk,
+    uint8_t toie, volatile uint8_t *tifr, uint8_t tov, uint8_t timer) :
+  _tcntl(tcntl), _tcnth(tcnth), _timsk(timsk),
+    _toie(toie), _tifr(tifr), _tov(tov), _timer(timer)
 {
   assert(tcntl);
 
@@ -38,24 +40,25 @@ ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile ui
 
 ticksExtraRange_t ExtTimer::get() const
 {
-  // Prevent overflow ticks from incrementing
+  // Prevent overflow ticks from incrementing and prevent TOV flag from clearing
   char prevSREG = SREG;
   cli();
 
-  ticksExtraRange_t ovf = getOverflowTicks();
+  ticksExtraRange_t ovfTicks = getOverflowTicks();
 
   ticks16_t sys = getSysRange();
 
+  uint8_t ovf = *_tifr & (1 << _tov);
+
   SREG = prevSREG; // restore interrupt state of the caller
 
-  // Handle overflow
-  if (sys > getSysRange())
+  if (sys < (1UL << 15) && ovf > 0)
   {
-    return sys + ovf + (1ul << 16);
+    return sys + ovfTicks + (1UL << 16);
   }
-  else
+  else 
   {
-    return sys + ovf;
+    return sys + ovfTicks;
   }
 }
 

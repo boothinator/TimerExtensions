@@ -23,7 +23,7 @@
 
 #ifdef HAVE_TCNT0
 
-ExtTimer ExtTimer0(&TCNT0, nullptr, &TIMSK0, TOIE0, TIMER0);
+ExtTimer ExtTimer0(&TCNT0, nullptr, &TIMSK0, TOIE0, &TIFR0, TOV0, TIMER0);
 
 #if defined(USE_ARDUINO_TIMER0_OVERFLOW) && !USE_ARDUINO_TIMER0_OVERFLOW
 
