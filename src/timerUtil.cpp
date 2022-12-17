@@ -22,43 +22,72 @@
 
 namespace {
 
-// TODO: Implement 8-bit timers
-
 volatile uint8_t *getTimerTCCRA(uint8_t timer)
 {
-  switch (timer)
+  switch(timer)
   {
+    // XXX fix needed for atmega8
+    #if defined(TCCR0) && !defined(__AVR_ATmega8__)
     case TIMER0:
+    case TIMER0A:
+    case TIMER0B:
+      return &TCCR0;
+    #endif
+
+    #if defined(TCCR0A)
+    //case TIMER0:
+    case TIMER0A:
     case TIMER0B:
       return &TCCR0A;
-    case TIMER1:
+    #endif
+
+    #if defined(TCCR1A)
+    //case TIMER1:
+    case TIMER1A:
     case TIMER1B:
     case TIMER1C:
       return &TCCR1A;
-#ifdef TCCR2A
+    #endif
+
+    #if defined(TCCR2)
+    case TIMER2:
+    case TIMER2A:
+    case TIMER2B:
+      return &TCCR2;
+    #endif
+
+    #if defined(TCCR2A)
     case TIMER2:
     case TIMER2A:
     case TIMER2B:
       return &TCCR2A;
-#endif
-#ifdef TCCR3A
-    case TIMER3:
+    #endif
+
+    #if defined(TCCR3A)
+    //case TIMER3:
+    case TIMER3A:
     case TIMER3B:
     case TIMER3C:
       return &TCCR3A;
-#endif
-#ifdef TCCR4A
-    case TIMER4:
+    #endif
+
+    #if defined(TCCR4A)
+    //case TIMER4:
+    case TIMER4A:
     case TIMER4B:
     case TIMER4C:
       return &TCCR4A;
-#endif
-#ifdef TCCR5A
-    case TIMER5:
+    #endif
+
+    #if defined(TCCR5A)
+    //case TIMER5:
+    case TIMER5A:
     case TIMER5B:
     case TIMER5C:
       return &TCCR5A;
-#endif
+    #endif
+
+    case NOT_ON_TIMER:
     default:
       return nullptr;
   }
