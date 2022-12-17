@@ -37,6 +37,7 @@ public:
   ticksExtraRange_t extendTimeInPast(ticks16_t ticks) const;
 
   ticks16_t getSysRange() const;
+  uint16_t getMaxSysTicks() const;
 
   uint32_t getOverflowCount() const;
   void resetOverflowCount();

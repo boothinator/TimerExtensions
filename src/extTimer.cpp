@@ -160,6 +160,14 @@ ticks16_t ExtTimer::getSysRange() const
   }
 }
 
+uint16_t ExtTimer::getMaxSysTicks() const {
+  if (_tcnth) {
+    return UINT16_MAX;
+  } else {
+    return UINT8_MAX;
+  }
+}
+
 uint32_t ExtTimer::getOverflowCount() const
 {
   ticksExtraRange_t tmp;
