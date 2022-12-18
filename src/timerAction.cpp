@@ -16,11 +16,18 @@
 
 #include "timerAction.h"
 
+#include <util/atomic.h>
 
 void TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
     TimerActionCallback cb, void *cbData)
 {
   ticksExtraRange_t curTicks = _extTimer->get();
+
+  if (Scheduled == _state || WaitingToSchedule == _state)
+  {
+    // Disable interrupt
+    *_extTimer->getTIMSK() &= ~(1 << _ocie);
+  }
 
   _cb = cb;
   _cbData = cbData;
@@ -28,9 +35,26 @@ void TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   _state = WaitingToSchedule;
   _action = action;
   _actionTicks = actionTicks;
-  setOutputCompareTicks(_timer, static_cast<uint16_t>(actionTicks));
+
+  // Set OCR to a known value in the past and clear any pending int flag
+  // Ensures that we have plety of time to set OCR without accidentally
+  // matching
+  setOutputCompareTicks(_timer, static_cast<uint16_t>(curTicks - 1));
+  *_extTimer->getTIFR() = (1 << _ocf);
+  
+  // Enable the interrupt
   *_extTimer->getTIMSK() |= (1 << _ocie);
+
+  // Set the action and the action time
   tryScheduleSysRange(curTicks);
+
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  {
+    // Setting OCR could fire the interrupt, so process first
+    setOutputCompareTicks(_timer, static_cast<uint16_t>(actionTicks));
+
+    tryProcessActionInPast(_extTimer->get());
+  }
 }
 
 void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)
@@ -50,10 +74,8 @@ void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)
   }
 }
 
-void TimerAction::processInterrupt()
+bool TimerAction::tryProcessActionInPast(ticksExtraRange_t curTicks)
 {
-  const ticksExtraRange_t curTicks = _extTimer->get();
-
   // The action is now in the past
   if (curTicks - _prevTicks > _actionTicks - _prevTicks)
   {
@@ -61,7 +83,7 @@ void TimerAction::processInterrupt()
     *_extTimer->getTIMSK() &= ~(1 << _ocie);
 
     // Check for miss
-    if (WaitingToSchedule == _state && curTicks - _actionTicks > _extTimer->getMaxSysTicks())
+    if (WaitingToSchedule == _state)
     {
       _state = MissedAction;
     }
@@ -73,8 +95,21 @@ void TimerAction::processInterrupt()
     if (_cb) {
       _cb(this, _cbData);
     }
+
+    return true;
   }
   else
+  {
+    return false;
+  }
+}
+
+void TimerAction::processInterrupt()
+{
+  const ticksExtraRange_t curTicks = _extTimer->get();
+
+  // The action is now in the past
+  if (!tryProcessActionInPast(curTicks))
   {
     tryScheduleSysRange(curTicks);
   }

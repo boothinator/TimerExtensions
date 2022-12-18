@@ -54,21 +54,21 @@ void scheduleAndTest(ticksExtraRange_t actionTicks, CompareAction action)
   snprintf(message, MAX_MESSAGE_LEN, "scheduleAndTest() ActionTicks: %lx, CurTicks: %lx, Action: %u, State: %u",
     actionTicks, ExtTimer1.get(), action, TimerAction1A.getState());
 
-  TEST_ASSERT_FALSE(timedOut);
+  TEST_ASSERT_FALSE_MESSAGE(timedOut, message);
 
   TEST_ASSERT_EQUAL_MESSAGE(TimerAction::Idle, TimerAction1A.getState(), message);
 
   if (CompareAction::Set == action)
   {
-    TEST_ASSERT_EQUAL(HIGH, digitalRead(11));
+    TEST_ASSERT_EQUAL_MESSAGE(HIGH, digitalRead(11), message);
   }
   else if (CompareAction::Clear == action)
   {
-    TEST_ASSERT_EQUAL(LOW, digitalRead(11));
+    TEST_ASSERT_EQUAL_MESSAGE(LOW, digitalRead(11), message);
   }
   else if (CompareAction::Toggle == action)
   {
-    TEST_ASSERT_NOT_EQUAL(pinStartState, digitalRead(11));
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(pinStartState, digitalRead(11), message);
   }
 }
 
@@ -87,6 +87,19 @@ void test_timerOverflow()
   const ticksExtraRange_t actionTicks = 100ul;
   ExtTimer1.set(actionTicks - 1000ul);
   scheduleAndTest(actionTicks, CompareAction::Set);
+}
+
+void test_shortmiss()
+{
+  ticksExtraRange_t startTicks = ExtTimer1.get();
+
+  const ticksExtraRange_t actionTicks = startTicks + 107ul;
+
+  TimerAction1A.schedule(actionTicks, CompareAction::Set);
+
+  TEST_ASSERT_EQUAL(TimerAction::Idle, TimerAction1A.getState());
+
+  TEST_ASSERT_EQUAL(HIGH, digitalRead(11));
 }
 
 void test_longmiss()
@@ -121,9 +134,10 @@ void setup() {
 
   UNITY_BEGIN();    // IMPORTANT LINE!
 
-  RUN_TEST(test_basic);
-  RUN_TEST(test_timerOverflow);
-  RUN_TEST(test_longmiss);
+  //RUN_TEST(test_basic);
+  //RUN_TEST(test_timerOverflow);
+  //RUN_TEST(test_longmiss);
+  RUN_TEST(test_shortmiss);
 
   UNITY_END(); // stop unit testing
 }

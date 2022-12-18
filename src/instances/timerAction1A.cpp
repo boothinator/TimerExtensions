@@ -26,7 +26,7 @@
 
 #ifdef OCR1A
 
-TimerAction TimerAction1A(TIMER1A, &ExtTimer1, OCIE1A);
+TimerAction TimerAction1A(TIMER1A, &ExtTimer1, OCIE1A, OCF1A);
 
 ISR(TIMER1_COMPA_vect)
 {

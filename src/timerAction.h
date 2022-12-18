@@ -28,8 +28,8 @@ public:
 
   typedef void (*TimerActionCallback) (TimerAction *, void *);
 
-  TimerAction(int timer, ExtTimer *extTimer, uint8_t ocie)
-    : _timer{timer}, _extTimer{extTimer}, _ocie{ocie}
+  TimerAction(int timer, ExtTimer *extTimer, uint8_t ocie, uint8_t ocf)
+    : _timer{timer}, _extTimer{extTimer}, _ocie{ocie}, _ocf{ocf}
   {}
 
   void schedule(ticksExtraRange_t actionTicks, CompareAction action,
@@ -55,6 +55,7 @@ private:
   ticksExtraRange_t _prevTicks;
 
   uint8_t _ocie;
+  uint8_t _ocf;
   
   CompareAction _action;
 
@@ -64,6 +65,7 @@ private:
   State _state = Idle;
 
   void tryScheduleSysRange(ticksExtraRange_t curTicks);
+  bool tryProcessActionInPast(ticksExtraRange_t curTicks);
 };
 
 // TODO: others
