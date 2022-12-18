@@ -37,6 +37,7 @@ bool configureTimerMode(uint8_t timer, TimerMode mode, TimerResolution resolutio
 
 enum CompareAction : uint8_t {Nothing = 0b0, Toggle = 0b01, Clear = 0b10, Set = 0b11};
 void setOutputCompareAction(int timer, CompareAction action);
+CompareAction getOutputCompareAction(int timer);
 void setOutputCompareTicks(int timer, ticks16_t val);
 
 uint8_t inputCapturePinToTimer(uint8_t pin);

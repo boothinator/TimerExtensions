@@ -18,7 +18,7 @@
 
 #include <util/atomic.h>
 
-void TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
+bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
     TimerActionCallback cb, void *cbData)
 {
   ticksExtraRange_t curTicks = _extTimer->get();
@@ -28,6 +28,8 @@ void TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
     // Disable interrupt
     *_extTimer->getTIMSK() &= ~(1 << _ocie);
   }
+
+  CompareAction prevCompareAction = getOutputCompareAction(_timer);
 
   _cb = cb;
   _cbData = cbData;
@@ -48,13 +50,36 @@ void TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   // Set the action and the action time
   tryScheduleSysRange(curTicks);
 
+  bool successful = true;
+
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
     // Setting OCR could fire the interrupt, so process first
     setOutputCompareTicks(_timer, static_cast<uint16_t>(actionTicks));
 
-    tryProcessActionInPast(_extTimer->get());
+    if (Scheduled == _state)
+    {
+      ticksExtraRange_t ticksAfterSet = _extTimer->get();
+
+      bool didHit = *_extTimer->getTIFR() & (1 << _ocf);
+
+      // Are we now after the action time?
+      bool shouldHaveHit = ticksAfterSet - _prevTicks > _actionTicks - _prevTicks;
+
+      if (shouldHaveHit && !didHit)
+      {
+        setOutputCompareAction(_timer, prevCompareAction);
+        _state = MissedAction;
+        successful = false;
+
+        if (_cb) {
+          _cb(this, _cbData);
+        }
+      }
+    }
   }
+
+  return successful;
 }
 
 void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)

@@ -32,7 +32,7 @@ public:
     : _timer{timer}, _extTimer{extTimer}, _ocie{ocie}, _ocf{ocf}
   {}
 
-  void schedule(ticksExtraRange_t actionTicks, CompareAction action,
+  bool schedule(ticksExtraRange_t actionTicks, CompareAction action,
       TimerActionCallback cb = nullptr, void *cbData = nullptr);
 
   void processInterrupt();

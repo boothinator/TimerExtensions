@@ -36,7 +36,7 @@ void scheduleAndTest(ticksExtraRange_t actionTicks, CompareAction action)
 {
   int pinStartState = digitalRead(11);
 
-  TimerAction1A.schedule(actionTicks, action);
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, action));
 
   ticksExtraRange_t startTicks = ExtTimer1.get();
 
@@ -91,16 +91,31 @@ void test_timerOverflow()
 
 void test_shortmiss()
 {
-  ticksExtraRange_t startTicks = ExtTimer1.get();
-
-  const ticksExtraRange_t actionTicks = startTicks + 200ul;
-
-  TimerAction1A.schedule(actionTicks, CompareAction::Set);
-
-  TEST_ASSERT_EQUAL(TimerAction::Idle, TimerAction1A.getState());
 
 	uint8_t bit = digitalPinToBitMask(11);
 	uint8_t port = digitalPinToPort(11);
+
+  // Schedule something without enough lead time
+  ticksExtraRange_t startTicks = ExtTimer1.get();
+
+  ticksExtraRange_t actionTicks = startTicks + 200ul;
+
+  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set));
+
+  TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+
+  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
+
+  // Schedule something with enough lead time
+  startTicks = ExtTimer1.get();
+
+  actionTicks = startTicks + 800ul;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set));
+
+  while (ExtTimer1.get() - startTicks < actionTicks - startTicks) {}
+
+  TEST_ASSERT_EQUAL(TimerAction::Idle, TimerAction1A.getState());
 
   TEST_ASSERT_TRUE(*portInputRegister(port) & bit);
 }
@@ -114,7 +129,7 @@ void test_longmiss()
   ticksExtraRange_t startTicks = ExtTimer1.get();
 
   const ticksExtraRange_t actionTicks = startTicks + ExtTimer1.getMaxSysTicks() + 1000ul;
-  TimerAction1A.schedule(actionTicks, CompareAction::Set);
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set));
 
   while (ExtTimer1.get() - startTicks < actionTicks - startTicks) {}
   
@@ -137,9 +152,9 @@ void setup() {
 
   UNITY_BEGIN();    // IMPORTANT LINE!
 
-  //RUN_TEST(test_basic);
-  //RUN_TEST(test_timerOverflow);
-  //RUN_TEST(test_longmiss);
+  RUN_TEST(test_basic);
+  RUN_TEST(test_timerOverflow);
+  RUN_TEST(test_longmiss);
   RUN_TEST(test_shortmiss);
 
   UNITY_END(); // stop unit testing

@@ -485,6 +485,33 @@ void setOutputCompareAction(int timer, CompareAction action)
   }
 }
 
+CompareAction getOutputCompareAction(int timer)
+{
+  volatile uint8_t *tccra = getTimerTCCRA(timer);
+
+  if (tccra)
+  {
+    switch (timer)
+    {
+      case TIMER1A:
+      case TIMER3A:
+      case TIMER4A:
+      case TIMER5A:
+        return (CompareAction) ((*tccra & 0b11000000) >> 6);
+      case TIMER1B:
+      case TIMER3B:
+      case TIMER4B:
+      case TIMER5B:
+        return (CompareAction) ((*tccra & 0b00110000) >> 4);
+      case TIMER1C:
+      case TIMER3C:
+      case TIMER4C:
+      case TIMER5C:
+        return (CompareAction) ((*tccra & 0b00001100) >> 2);
+    }
+  }
+}
+
 void setOutputCompareTicks(int timer, ticks16_t val)
 {
   /* Copied from wiring_analog.c and modified */
