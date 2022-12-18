@@ -453,6 +453,164 @@ bool configureTimerMode(uint8_t timer, TimerMode mode, TimerResolution resolutio
   }
 }
 
+void setOutputCompareAction(int timer, CompareAction action)
+{
+  volatile uint8_t *tccra = getTimerTCCRA(timer);
+
+  if (tccra)
+  {
+    uint8_t com = (uint8_t)action;
+
+    switch (timer)
+    {
+      case TIMER1A:
+      case TIMER3A:
+      case TIMER4A:
+      case TIMER5A:
+        *tccra = (*tccra & 0b00111111) | (com << 6);
+        break;
+      case TIMER1B:
+      case TIMER3B:
+      case TIMER4B:
+      case TIMER5B:
+        *tccra = (*tccra & 0b11001111) | (com << 4);
+        break;
+      case TIMER1C:
+      case TIMER3C:
+      case TIMER4C:
+      case TIMER5C:
+        *tccra = (*tccra & 0b11110011) | (com << 2);
+        break;
+    }
+  }
+}
+
+void setOutputCompareTicks(int timer, ticks16_t val)
+{
+  /* Copied from wiring_analog.c and modified */
+  switch(timer)
+  {
+  	#if defined(TCCR0) && defined(COM00) && !defined(__AVR_ATmega8__)
+    case TIMER0A:
+      OCR0 = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR0A) && defined(COM0A1)
+    case TIMER0A:
+      OCR0A = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR0A) && defined(COM0B1)
+    case TIMER0B:
+      OCR0B = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR1A) && defined(COM1A1)
+    case TIMER1A:
+      OCR1A = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR1A) && defined(COM1B1)
+    case TIMER1B:
+      OCR1B = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR1A) && defined(COM1C1)
+    case TIMER1C:
+      OCR1C = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR2) && defined(COM21)
+    case TIMER2:
+      OCR2 = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR2A) && defined(COM2A1)
+    case TIMER2A:
+      OCR2A = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR2A) && defined(COM2B1)
+    case TIMER2B:
+      OCR2B = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR3A) && defined(COM3A1)
+    case TIMER3A:
+      OCR3A = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR3A) && defined(COM3B1)
+    case TIMER3B:
+      OCR3B = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR3A) && defined(COM3C1)
+    case TIMER3C:
+      OCR3C = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR4A)
+    case TIMER4A:
+      OCR4A = val;	// set pwm duty
+      break;
+    #endif
+    
+    #if defined(TCCR4A) && defined(COM4B1)
+    case TIMER4B:
+      OCR4B = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR4A) && defined(COM4C1)
+    case TIMER4C:
+      OCR4C = val; // set pwm duty
+      break;
+    #endif
+      
+    #if defined(TCCR4C) && defined(COM4D1)
+    case TIMER4D:
+      OCR4D = val;	// set pwm duty
+      break;
+    #endif
+
+            
+    #if defined(TCCR5A) && defined(COM5A1)
+    case TIMER5A:
+      OCR5A = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR5A) && defined(COM5B1)
+    case TIMER5B:
+      OCR5B = val; // set pwm duty
+      break;
+    #endif
+
+    #if defined(TCCR5A) && defined(COM5C1)
+    case TIMER5C:
+      OCR5C = val; // set pwm duty
+      break;
+    #endif
+
+    case NOT_ON_TIMER:
+    default:
+      break;
+  }
+}
+
 uint8_t inputCapturePinToTimer(uint8_t pin)
 {
   switch (pin)
