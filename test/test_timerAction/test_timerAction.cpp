@@ -93,13 +93,16 @@ void test_shortmiss()
 {
   ticksExtraRange_t startTicks = ExtTimer1.get();
 
-  const ticksExtraRange_t actionTicks = startTicks + 107ul;
+  const ticksExtraRange_t actionTicks = startTicks + 200ul;
 
   TimerAction1A.schedule(actionTicks, CompareAction::Set);
 
   TEST_ASSERT_EQUAL(TimerAction::Idle, TimerAction1A.getState());
 
-  TEST_ASSERT_EQUAL(HIGH, digitalRead(11));
+	uint8_t bit = digitalPinToBitMask(11);
+	uint8_t port = digitalPinToPort(11);
+
+  TEST_ASSERT_TRUE(*portInputRegister(port) & bit);
 }
 
 void test_longmiss()
