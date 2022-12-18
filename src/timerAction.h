@@ -24,7 +24,7 @@
 
 class TimerAction {
 public:
-  enum State : uint8_t {Idle, Scheduled, MissedAction};
+  enum State : uint8_t {Idle, WaitingToSchedule, Scheduled, MissedAction};
 
   typedef void (*TimerActionCallback) (TimerAction *, void *);
 
@@ -33,7 +33,7 @@ public:
   {}
 
   void schedule(ticksExtraRange_t actionTicks, CompareAction action,
-      TimerActionCallback cb, void *cbData = nullptr);
+      TimerActionCallback cb = nullptr, void *cbData = nullptr);
 
   void processInterrupt();
 

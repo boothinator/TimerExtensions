@@ -25,7 +25,7 @@ void TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   _cb = cb;
   _cbData = cbData;
   _prevTicks = curTicks;
-  _state = Scheduled;
+  _state = WaitingToSchedule;
   _action = action;
   _actionTicks = actionTicks;
   setOutputCompareTicks(_timer, static_cast<uint16_t>(actionTicks));
@@ -41,10 +41,12 @@ void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)
   if (actionTicksDiff < _extTimer->getMaxSysTicks())
   {
     setOutputCompareAction(_timer, _action);
+    _state = Scheduled;
   }
   else
   {
     // Leave in previous state
+    _state = WaitingToSchedule;
   }
 }
 
@@ -59,7 +61,7 @@ void TimerAction::processInterrupt()
     *_extTimer->getTIMSK() &= ~(1 << _ocie);
 
     // Check for miss
-    if (curTicks - _actionTicks > _extTimer->getMaxSysTicks())
+    if (WaitingToSchedule == _state && curTicks - _actionTicks > _extTimer->getMaxSysTicks())
     {
       _state = MissedAction;
     }
