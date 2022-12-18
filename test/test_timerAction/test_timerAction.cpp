@@ -100,11 +100,13 @@ void test_longmiss()
   const ticksExtraRange_t actionTicks = startTicks + ExtTimer1.getMaxSysTicks() + 1000ul;
   TimerAction1A.schedule(actionTicks, CompareAction::Set);
 
-  while (ExtTimer1.get() - startTicks < actionTicks - startTicks + 10000ul) {}
+  while (ExtTimer1.get() - startTicks < actionTicks - startTicks) {}
+  
+  // Now that the action time has passed, enable interrupts and let it process
+  interrupts();
+  while (ExtTimer1.get() - startTicks < actionTicks + ExtTimer1.getMaxSysTicks() + 1000ul - startTicks) {}
 
   TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
-
-  interrupts();
 }
 
 void setup() {
