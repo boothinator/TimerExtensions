@@ -28,8 +28,8 @@ public:
 
   typedef void (*TimerActionCallback) (TimerAction *, void *);
 
-  TimerAction(int timer, ExtTimer *extTimer, volatile uint8_t *timsk, uint8_t ocie)
-    : _timer{timer}, _extTimer{extTimer}, _timsk{timsk}, _ocie{ocie}
+  TimerAction(int timer, ExtTimer *extTimer, uint8_t ocie)
+    : _timer{timer}, _extTimer{extTimer}, _ocie{ocie}
   {}
 
   void schedule(ticksExtraRange_t actionTicks, CompareAction action,
@@ -54,7 +54,6 @@ private:
   ticksExtraRange_t _actionTicks;
   ticksExtraRange_t _prevTicks;
 
-  volatile uint8_t *_timsk;
   uint8_t _ocie;
   
   CompareAction _action;
@@ -66,5 +65,13 @@ private:
 
   void tryScheduleSysRange(ticksExtraRange_t curTicks);
 };
+
+// TODO: others
+
+#ifdef HAVE_TCNT1
+
+extern TimerAction TimerAction1A;
+
+#endif // HAVE_TCNT1
 
 #endif // TIMER_EXT_TIMER_ACTION_H_

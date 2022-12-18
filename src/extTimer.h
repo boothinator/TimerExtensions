@@ -42,7 +42,9 @@ public:
   uint32_t getOverflowCount() const;
   void resetOverflowCount();
 
-  int getTimer();
+  int getTimer() const;
+  volatile uint8_t *getTIMSK() const;
+  volatile uint8_t *getTIFR() const;
 
   void processOverflow();
 

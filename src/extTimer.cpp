@@ -223,9 +223,18 @@ void ExtTimer::resetOverflowCount()
   SREG = prevSREG; // restore interrupt state of the caller
 }
 
-int ExtTimer::getTimer()
+int ExtTimer::getTimer() const
 {
   return _timer;
+}
+volatile uint8_t *ExtTimer::getTIMSK() const
+{
+  return _timsk;
+}
+
+volatile uint8_t *ExtTimer::getTIFR() const
+{
+  return _tifr;
 }
 
 void ExtTimer::processOverflow()

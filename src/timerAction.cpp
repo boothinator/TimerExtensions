@@ -29,7 +29,7 @@ void TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   _action = action;
   _actionTicks = actionTicks;
   setOutputCompareTicks(_timer, static_cast<uint16_t>(actionTicks));
-  *_timsk |= (1 << _ocie);
+  *_extTimer->getTIMSK() |= (1 << _ocie);
   tryScheduleSysRange(curTicks);
 }
 
@@ -56,7 +56,7 @@ void TimerAction::processInterrupt()
   if (curTicks - _prevTicks > _actionTicks - _prevTicks)
   {
     // Disable interrupt
-    *_timsk &= ~(1 << _ocie);
+    *_extTimer->getTIMSK() &= ~(1 << _ocie);
 
     // Check for miss
     if (curTicks - _actionTicks > _extTimer->getMaxSysTicks())
