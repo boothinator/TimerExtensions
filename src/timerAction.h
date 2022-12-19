@@ -34,7 +34,7 @@ public:
 
   bool schedule(ticksExtraRange_t actionTicks, CompareAction action,
       TimerActionCallback cb = nullptr, void *cbData = nullptr);
-  bool schedule(ticksExtraRange_t actionTicks, CompareAction action, ticksExtraRange_t curTicks,
+  bool schedule(ticksExtraRange_t actionTicks, CompareAction action, ticksExtraRange_t originTicks,
       TimerActionCallback cb = nullptr, void *cbData = nullptr);
 
   void processInterrupt();

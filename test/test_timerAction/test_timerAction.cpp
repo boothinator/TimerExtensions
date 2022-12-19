@@ -170,6 +170,34 @@ void test_longmiss()
   TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
 }
 
+void test_origin()
+{
+	uint8_t bit = digitalPinToBitMask(11);
+	uint8_t port = digitalPinToPort(11);
+
+  // Should miss since there isn't enough lead time
+  ticksExtraRange_t originTicks = ExtTimer1.get();
+
+  ticksExtraRange_t actionTicks = originTicks;
+
+  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+
+  TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+
+  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
+
+  // Should be scheduled since TimerAction thinks the action is in the distant future
+  originTicks = ExtTimer1.get();
+
+  actionTicks = originTicks - 1ul;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+
+  TEST_ASSERT_EQUAL(TimerAction::WaitingToSchedule, TimerAction1A.getState());
+
+  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
+}
+
 void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
@@ -187,6 +215,7 @@ void setup() {
   RUN_TEST(test_longmiss);
   RUN_TEST(test_shortmiss);
   RUN_TEST(test_supershortmiss);
+  RUN_TEST(test_origin);
 
   UNITY_END(); // stop unit testing
 }
