@@ -32,6 +32,7 @@ enum class TimerType { NotATimer, _8Bit, _16Bit };
 TimerType getTimerType(uint8_t timer);
 
 bool setTimerClock(uint8_t timer, TimerClock clock);
+TimerClock getTimerClock(uint8_t timer);
 
 bool setTimerMode(uint8_t timer, TimerMode mode, TimerResolution resolution = TimerResolution::NA);
 
