@@ -54,7 +54,16 @@ private:
   ExtTimer *_extTimer;
   
   ticksExtraRange_t _actionTicks;
-  ticksExtraRange_t _prevTicks;
+
+  // Defines dividing line between near future (_originTicks < _extTimer.getMaxSysTicks())
+  // and far future (_originTicks > _extTimer.getMaxSysTicks())
+  //
+  // Defines an origin for determining when an action should have happened
+  // (curTicks - _originTicks > actionTicks - _originTicks)
+  //
+  // Defines what it means to miss an action
+  // (curTicks - _originTicks > actionTicks - _originTicks && hit == false)
+  ticksExtraRange_t _originTicks;
 
   uint8_t _ocie;
   uint8_t _ocf;

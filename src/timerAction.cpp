@@ -19,7 +19,7 @@
 #include <util/atomic.h>
 
 bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
-    ticksExtraRange_t curTicks, TimerActionCallback cb, void *cbData)
+    ticksExtraRange_t originTicks, TimerActionCallback cb, void *cbData)
 {
   if (Scheduled == _state || WaitingToSchedule == _state)
   {
@@ -31,7 +31,7 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
 
   _cb = cb;
   _cbData = cbData;
-  _prevTicks = curTicks;
+  _originTicks = originTicks;
   _state = WaitingToSchedule;
   _action = action;
   _actionTicks = actionTicks;
@@ -39,14 +39,16 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   // Set OCR to a known value in the past and clear any pending int flag
   // Ensures that we have plety of time to set OCR without accidentally
   // matching
-  setOutputCompareTicks(_timer, static_cast<uint16_t>(curTicks - 1));
+  setOutputCompareTicks(_timer, static_cast<uint16_t>(originTicks - 1));
   *_extTimer->getTIFR() = (1 << _ocf);
   
   // Enable the interrupt
   *_extTimer->getTIMSK() |= (1 << _ocie);
 
   // Set the action and the action time
-  tryScheduleSysRange(curTicks);
+  // Use originTicks as the current time since it is the
+  // "current time" according to the caller
+  tryScheduleSysRange(originTicks);
 
   bool successful = true;
 
@@ -62,7 +64,7 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
       bool didHit = *_extTimer->getTIFR() & (1 << _ocf);
 
       // Are we now after the action time?
-      bool shouldHaveHit = ticksAfterSet - _prevTicks > _actionTicks - _prevTicks;
+      bool shouldHaveHit = ticksAfterSet - _originTicks > _actionTicks - _originTicks;
 
       if (shouldHaveHit && !didHit)
       {
@@ -108,7 +110,7 @@ void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)
 bool TimerAction::tryProcessActionInPast(ticksExtraRange_t curTicks)
 {
   // The action is now in the past
-  if (curTicks - _prevTicks > _actionTicks - _prevTicks)
+  if (curTicks - _originTicks > _actionTicks - _originTicks)
   {
     // Disable interrupt
     *_extTimer->getTIMSK() &= ~(1 << _ocie);
@@ -144,8 +146,6 @@ void TimerAction::processInterrupt()
   {
     tryScheduleSysRange(curTicks);
   }
-
-  _prevTicks = curTicks;
 }
 
 TimerAction::State TimerAction::getState() const
