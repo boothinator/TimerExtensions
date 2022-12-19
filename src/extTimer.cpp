@@ -73,7 +73,7 @@ void ExtTimer::set(ticksExtraRange_t ticks)
     _overflowTicks = ticks & 0xFFFF0000;
 
     // Follow correct 16-bit register access rules by setting the high register first
-    *_tcnth = (uint8_t)(ticks & 0x0000FF00) >> 8;
+    *_tcnth = (uint8_t)((ticks & 0x0000FF00) >> 8);
     *_tcntl = (uint8_t)ticks;
   }
   else
