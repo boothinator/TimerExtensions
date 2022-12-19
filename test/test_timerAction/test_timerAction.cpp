@@ -89,6 +89,36 @@ void test_timerOverflow()
   scheduleAndTest(actionTicks, CompareAction::Set);
 }
 
+void test_supershortmiss()
+{
+
+	uint8_t bit = digitalPinToBitMask(11);
+	uint8_t port = digitalPinToPort(11);
+
+  // Schedule something without enough lead time
+  ticksExtraRange_t startTicks = ExtTimer1.get();
+
+  ticksExtraRange_t actionTicks = startTicks + 100ul;
+
+  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, startTicks));
+
+  TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+
+  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
+
+  // Schedule something without enough lead time, but rely on schedule() to
+  // figure out the dividing line between past and future
+  startTicks = ExtTimer1.get();
+
+  actionTicks = startTicks + 50ul;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set));
+
+  TEST_ASSERT_EQUAL(TimerAction::WaitingToSchedule, TimerAction1A.getState());
+
+  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
+}
+
 void test_shortmiss()
 {
 
@@ -156,6 +186,7 @@ void setup() {
   RUN_TEST(test_timerOverflow);
   RUN_TEST(test_longmiss);
   RUN_TEST(test_shortmiss);
+  RUN_TEST(test_supershortmiss);
 
   UNITY_END(); // stop unit testing
 }

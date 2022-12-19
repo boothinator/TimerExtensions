@@ -19,10 +19,8 @@
 #include <util/atomic.h>
 
 bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
-    TimerActionCallback cb, void *cbData)
+    ticksExtraRange_t curTicks, TimerActionCallback cb, void *cbData)
 {
-  ticksExtraRange_t curTicks = _extTimer->get();
-
   if (Scheduled == _state || WaitingToSchedule == _state)
   {
     // Disable interrupt
@@ -80,6 +78,14 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   }
 
   return successful;
+}
+
+bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
+    TimerActionCallback cb, void *cbData)
+{
+  ticksExtraRange_t curTicks = _extTimer->get();
+
+  return schedule(actionTicks, action, curTicks, cb, cbData);
 }
 
 void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)
