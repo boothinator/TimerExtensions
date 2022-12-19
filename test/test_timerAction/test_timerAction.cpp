@@ -177,8 +177,8 @@ void setup() {
 
   pinMode(11, OUTPUT);
 
-  configureTimerClock(TIMER1, TimerClock::Clk);
-  configureTimerMode(TIMER1, TimerMode::Normal);
+  setTimerClock(TIMER1, TimerClock::Clk);
+  setTimerMode(TIMER1, TimerMode::Normal);
 
   UNITY_BEGIN();    // IMPORTANT LINE!
 

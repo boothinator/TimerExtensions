@@ -31,9 +31,9 @@ enum class TimerType { NotATimer, _8Bit, _16Bit };
 
 TimerType getTimerType(uint8_t timer);
 
-bool configureTimerClock(uint8_t timer, TimerClock clock);
+bool setTimerClock(uint8_t timer, TimerClock clock);
 
-bool configureTimerMode(uint8_t timer, TimerMode mode, TimerResolution resolution = TimerResolution::NA);
+bool setTimerMode(uint8_t timer, TimerMode mode, TimerResolution resolution = TimerResolution::NA);
 
 enum CompareAction : uint8_t {Nothing = 0b0, Toggle = 0b01, Clear = 0b10, Set = 0b11};
 void setOutputCompareAction(int timer, CompareAction action);

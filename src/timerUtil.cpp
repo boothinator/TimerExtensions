@@ -180,7 +180,7 @@ TimerType getTimerType(uint8_t timer)
   }
 }
 
-bool configureTimerClock(uint8_t timer, TimerClock clock)
+bool setTimerClock(uint8_t timer, TimerClock clock)
 {
   volatile uint8_t *TCCRB = getTimerTCCRB(timer);
 
@@ -438,7 +438,7 @@ bool configureTimerMode16Bit(uint8_t timer, TimerMode mode, TimerResolution reso
   }
 }
 
-bool configureTimerMode(uint8_t timer, TimerMode mode, TimerResolution resolution)
+bool setTimerMode(uint8_t timer, TimerMode mode, TimerResolution resolution)
 {
   TimerType type = getTimerType(timer);
 
