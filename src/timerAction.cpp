@@ -46,9 +46,7 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   *_extTimer->getTIMSK() |= (1 << _ocie);
 
   // Set the action and the action time
-  // Use originTicks as the current time since it is the
-  // "current time" according to the caller
-  tryScheduleSysRange(originTicks);
+  tryScheduleSysRange(_extTimer->get());
 
   bool successful = true;
 
@@ -57,16 +55,16 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
     // Setting OCR could fire the interrupt, so process first
     setOutputCompareTicks(_timer, static_cast<uint16_t>(actionTicks));
 
-    if (Scheduled == _state)
-    {
       ticksExtraRange_t ticksAfterSet = _extTimer->get();
-
-      bool didHit = *_extTimer->getTIFR() & (1 << _ocf);
 
       // Are we now after the action time?
       bool shouldHaveHit = ticksAfterSet - _originTicks > _actionTicks - _originTicks;
 
-      if (shouldHaveHit && !didHit)
+    if (shouldHaveHit)
+    {
+      bool didHit = *_extTimer->getTIFR() & (1 << _ocf);
+
+      if (!didHit)
       {
         setOutputCompareAction(_timer, prevCompareAction);
         _state = MissedAction;
@@ -156,6 +154,11 @@ TimerAction::State TimerAction::getState() const
 ticksExtraRange_t TimerAction::getActionTicks() const
 {
   return _actionTicks;
+}
+
+ticksExtraRange_t TimerAction::getOriginTicks() const
+{
+  return _originTicks;
 }
 
 ExtTimer *TimerAction::getExtTimer() const

@@ -42,6 +42,7 @@ public:
   State getState() const;
 
   ticksExtraRange_t getActionTicks() const;
+  ticksExtraRange_t getOriginTicks() const;
 
   ExtTimer *getExtTimer() const;
 

@@ -36,9 +36,9 @@ void scheduleAndTest(ticksExtraRange_t actionTicks, CompareAction action)
 {
   int pinStartState = digitalRead(11);
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, action));
-
   ticksExtraRange_t startTicks = ExtTimer1.get();
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, action));
 
   bool timedOut = false;
 
@@ -48,11 +48,11 @@ void scheduleAndTest(ticksExtraRange_t actionTicks, CompareAction action)
     )
     && !timedOut)
   {
-    timedOut = !(ExtTimer1.get() - startTicks < actionTicks - startTicks + 1000);
+    timedOut = ExtTimer1.get() - startTicks > actionTicks - startTicks + 1000;
   }
 
-  snprintf(message, MAX_MESSAGE_LEN, "scheduleAndTest() ActionTicks: %lx, CurTicks: %lx, Action: %u, State: %u",
-    actionTicks, ExtTimer1.get(), action, TimerAction1A.getState());
+  snprintf(message, MAX_MESSAGE_LEN, "scheduleAndTest() ActionTicks: %lx, CurTicks: %lx, OriginTicks: %lx, Action: %u, State: %u",
+    actionTicks, ExtTimer1.get(), TimerAction1A.getOriginTicks(), action, TimerAction1A.getState());
 
   TEST_ASSERT_FALSE_MESSAGE(timedOut, message);
 
@@ -89,6 +89,20 @@ void test_timerOverflow()
   scheduleAndTest(actionTicks, CompareAction::Set);
 }
 
+void test_timerOverflowOrigin()
+{
+  ticksExtraRange_t originTicks = UINT32_MAX - 10000ul;
+  ExtTimer1.set(originTicks);
+
+  ticksExtraRange_t actionTicks = 100ul;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+
+  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+
+  TEST_ASSERT_EQUAL(TimerAction::Idle, TimerAction1A.getState());
+}
+
 void test_supershortmiss()
 {
 
@@ -103,18 +117,6 @@ void test_supershortmiss()
   TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, startTicks));
 
   TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
-
-  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
-
-  // Schedule something without enough lead time, but rely on schedule() to
-  // figure out the dividing line between past and future
-  startTicks = ExtTimer1.get();
-
-  actionTicks = startTicks + 50ul;
-
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set));
-
-  TEST_ASSERT_EQUAL(TimerAction::WaitingToSchedule, TimerAction1A.getState());
 
   TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
 }
@@ -202,6 +204,7 @@ void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
   //delay(2000);
+  delay(100);
 
   pinMode(11, OUTPUT);
 
@@ -212,6 +215,7 @@ void setup() {
 
   RUN_TEST(test_basic);
   RUN_TEST(test_timerOverflow);
+  RUN_TEST(test_timerOverflowOrigin);
   RUN_TEST(test_longmiss);
   RUN_TEST(test_shortmiss);
   RUN_TEST(test_supershortmiss);
