@@ -180,6 +180,61 @@ TimerType getTimerType(uint8_t timer)
   }
 }
 
+static const uint8_t InvalidClockSelect = UINT8_MAX;
+
+uint8_t getClockSelectBits(uint8_t timer, TimerClock clock)
+{
+  switch (clock)
+  {
+    case TimerClock::None:
+      return 0;
+    case TimerClock::Clk:
+      return 0b00000001;
+    case TimerClock::ClkDiv8:
+      return 0b00000010;
+    default:
+      // Fall through
+      break;
+  }
+
+  if (TIMER2 == timer)
+  {
+    switch (clock)
+    {
+      case TimerClock::ClkDiv32:
+        return 0b00000011;
+      case TimerClock::ClkDiv64:
+        return 0b00000100;
+      case TimerClock::ClkDiv128:
+        return 0b00000101;
+      case TimerClock::ClkDiv256:
+        return 0b00000110;
+      case TimerClock::ClkDiv1024:
+        return 0b00000111;
+      default:
+        // Fall through
+        break;
+    }
+  }
+  else
+  {
+    switch (clock)
+    {
+      case TimerClock::ClkDiv64:
+        return 0b00000011;
+      case TimerClock::ClkDiv256:
+        return 0b00000100;
+      case TimerClock::ClkDiv1024:
+        return 0b00000101;
+      default:
+        // Fall through
+        break;
+    }
+  }
+
+  return InvalidClockSelect;
+}
+
 bool setTimerClock(uint8_t timer, TimerClock clock)
 {
   volatile uint8_t *TCCRB = getTimerTCCRB(timer);
@@ -189,78 +244,77 @@ bool setTimerClock(uint8_t timer, TimerClock clock)
     return false;
   }
 
-  uint8_t cs;
+  uint8_t cs = getClockSelectBits(timer, clock);
 
-  if (TimerClock::None == clock)
+  if (InvalidClockSelect == cs)
   {
-    cs = 0;
-  }
-  else if (TimerClock::Clk == clock)
-  {
-    cs = 0b00000001;
-  }
-  else if (TimerClock::ClkDiv8 == clock)
-  {
-    cs = 0b00000010;
-  }
-  else if (TimerClock::ClkDiv32 == clock)
-  {
-    if (TIMER2 == timer)
-    {
-      cs = 0b00000011;
-    }
-    else
-    {
-      return false;
-    }
-  }
-  else if (TimerClock::ClkDiv64 == clock)
-  {
-    if (TIMER2 == timer)
-    {
-      cs = 0b00000100;
-    }
-    else
-    {
-      cs = 0b00000011;
-    }
-  }
-  else if (TimerClock::ClkDiv128 == clock)
-  {
-    if (TIMER2 == timer)
-    {
-      cs = 0b00000011;
-    }
-    else
-    {
-      return false;
-    }
-  }
-  else if (TimerClock::ClkDiv256 == clock)
-  {
-    if (TIMER2 == timer)
-    {
-      cs = 0b00000110;
-    }
-    else
-    {
-      cs = 0b00000100;
-    }
-  }
-  else if (TimerClock::ClkDiv1024 == clock)
-  {
-    if (TIMER2 == timer)
-    {
-      cs = 0b00000111;
-    }
-    else
-    {
-      cs = 0b00000101;
-    }
+    return false;
   }
 
   *TCCRB = (*TCCRB & 0b11111000) | cs;
   return true;
+}
+
+TimerClock getTimerClock(uint8_t timer)
+{
+  volatile uint8_t *TCCRB = getTimerTCCRB(timer);
+
+  if (!TCCRB)
+  {
+    return TimerClock::None;
+  }
+
+  uint8_t csBits = *TCCRB & 0b11111000;
+
+  switch (csBits)
+  {
+    case 0:
+      return TimerClock::None;
+    case 0b00000001:
+      return TimerClock::Clk;
+    case 0b00000010:
+      return TimerClock::ClkDiv8;
+    default:
+      // Fall through
+      break;
+  }
+
+  if (TIMER2 == timer)
+  {
+    switch (csBits)
+    {
+      case 0b00000011:
+        return TimerClock::ClkDiv32;
+      case 0b00000100:
+        return TimerClock::ClkDiv64;
+      case 0b00000101:
+        return TimerClock::ClkDiv128;
+      case 0b00000110:
+        return TimerClock::ClkDiv256;
+      case 0b00000111:
+        return TimerClock::ClkDiv1024;
+      default:
+        // Fall through
+        break;
+    }
+  }
+  else
+  {
+    switch (csBits)
+    {
+      case 0b00000011:
+        return TimerClock::ClkDiv64;
+      case 0b00000100:
+        return TimerClock::ClkDiv256;
+      case 0b00000101:
+        return TimerClock::ClkDiv1024;
+      default:
+        // Fall through
+        break;
+    }
+  }
+
+  return TimerClock::None;
 }
 
 constexpr uint8_t WGM0_TCCRA_8BIT = 0;
@@ -510,6 +564,8 @@ CompareAction getOutputCompareAction(int timer)
         return (CompareAction) ((*tccra & 0b00001100) >> 2);
     }
   }
+
+  return CompareAction::Nothing;
 }
 
 void setOutputCompareTicks(int timer, ticks16_t val)
