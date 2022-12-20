@@ -26,6 +26,10 @@
 char message[MAX_MESSAGE_LEN];
 
 void setUp(void) {
+  pinMode(11, OUTPUT);
+
+  setTimerClock(TIMER1, TimerClock::Clk);
+  setTimerMode(TIMER1, TimerMode::Normal);
 }
 
 void tearDown(void) {
@@ -209,11 +213,6 @@ void setup() {
   // if board doesn't support software reset via Serial.DTR/RTS
   //delay(2000);
   delay(100);
-
-  pinMode(11, OUTPUT);
-
-  setTimerClock(TIMER1, TimerClock::Clk);
-  setTimerMode(TIMER1, TimerMode::Normal);
 
   UNITY_BEGIN();    // IMPORTANT LINE!
 
