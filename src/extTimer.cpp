@@ -18,7 +18,7 @@
 #include "extTimer.h"
 
 #include "avr/interrupt.h"
-#include "assert.h"
+#include "util/atomic.h"
 
 #include "timerTypes.h"
 
@@ -33,24 +33,24 @@ ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile ui
   _tcntl(tcntl), _tcnth(tcnth), _timsk(timsk),
     _toie(toie), _tifr(tifr), _tov(tov), _timer(timer)
 {
-  assert(tcntl);
-
   *_timsk |= _BV(_toie);
 }
 
 ticksExtraRange_t ExtTimer::get() const
 {
+  ticksExtraRange_t ovfTicks;
+  ticks16_t sys;
+  uint8_t ovf;
+  
   // Prevent overflow ticks from incrementing and prevent TOV flag from clearing
-  char prevSREG = SREG;
-  cli();
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  {
+    ovfTicks = getOverflowTicks();
 
-  ticksExtraRange_t ovfTicks = getOverflowTicks();
+    sys = getSysRange();
 
-  ticks16_t sys = getSysRange();
-
-  uint8_t ovf = *_tifr & (1 << _tov);
-
-  SREG = prevSREG; // restore interrupt state of the caller
+    ovf = *_tifr & (1 << _tov);
+  }
 
   if (sys < (1UL << 15) && ovf > 0)
   {
@@ -64,29 +64,39 @@ ticksExtraRange_t ExtTimer::get() const
 
 void ExtTimer::set(ticksExtraRange_t ticks)
 {
-  char prevSREG = SREG;
-  cli();
 
   if (_tcnth)
   {
     // 16-bit timer
     _overflowTicks = ticks & 0xFFFF0000;
 
-    // Follow correct 16-bit register access rules by setting the high register first
-    *_tcnth = (uint8_t)((ticks & 0x0000FF00) >> 8);
-    *_tcntl = (uint8_t)ticks;
+    uint8_t highByte = (ticks & 0x0000FF00) >> 8;
+
+    // Ensure that TCNT is set and TOV is cleared together
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+      // Follow correct 16-bit register access rules by setting the high register first
+      *_tcnth = highByte;
+      *_tcntl = (uint8_t)ticks;
+
+      // Clear overflow flag
+      *_tifr = (1 << _tov);
+    }
   }
   else
   {
     // 8-bit timer
     _overflowTicks = ticks & 0xFFFFFF00;
-    *_tcntl = (uint8_t)ticks;
+
+    // Ensure that TCNT is set and TOV is cleared together
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+      *_tcntl = (uint8_t)ticks;
+
+      // Clear overflow flag
+      *_tifr = (1 << _tov);
+    }
   }
-
-  // Clear overflow flag
-  *_tifr = (1 << _tov);
-
-  SREG = prevSREG; // restore interrupt state of the caller
 }
 
 ticksExtraRange_t ExtTimer::extend(ticks16_t ticks) const
@@ -142,14 +152,13 @@ ticks16_t ExtTimer::getSysRange() const
     // 16-bit counter
     ticks16_t low, high;
 
-    char prevSREG = SREG;
-    cli();
-
-    // Follow correct 16-bit register access rules by loading the low register first
-    low = *_tcntl;
-    high = *_tcnth;
-
-    SREG = prevSREG; // restore interrupt state of the caller
+    // Ensure there's no race with someone trying to use the temp register
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+      // Follow correct 16-bit register access rules by loading the low register first
+      low = *_tcntl;
+      high = *_tcnth;
+    }
 
     return low + (high << 8);
   }
@@ -171,16 +180,15 @@ uint16_t ExtTimer::getMaxSysTicks() const {
 uint32_t ExtTimer::getOverflowCount() const
 {
   ticksExtraRange_t tmp;
-  
+
+  // Use the Arduino overflow variable if defined
 #ifdef timer0_overflow_count
   if (TIMER0 == _timer)
   {
-    char prevSREG = SREG;
-    cli();
-
-    tmp = timer0_overflow_count;
-
-    SREG = prevSREG; // restore interrupt state of the caller
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+      tmp = timer0_overflow_count;
+    }
 
     return tmp;
   }
@@ -255,23 +263,22 @@ ticksExtraRange_t ExtTimer::getOverflowTicks() const
 {
   ticksExtraRange_t tmp;
 
-  char prevSREG = SREG;
-  cli();
-
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  {
+    // Use the Arduino overflow variable if defined
 #ifdef timer0_overflow_count
-  if (TIMER0 == _timer)
-  {
-    tmp = timer0_overflow_count << 8;
-  }
-  else
-  {
-    tmp = _overflowTicks;
-  }
+    if (TIMER0 == _timer)
+    {
+      tmp = timer0_overflow_count << 8;
+    }
+    else
+    {
+      tmp = _overflowTicks;
+    }
 #else
-  tmp = _overflowTicks;
+    tmp = _overflowTicks;
 #endif
-
-  SREG = prevSREG; // restore interrupt state of the caller
+  }
 
   return tmp;
 }
