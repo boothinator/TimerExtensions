@@ -112,6 +112,8 @@ void test_timerOverflowOrigin()
   while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
 
   TEST_ASSERT_EQUAL(TimerAction::Idle, TimerAction1A.getState());
+
+  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
 }
 
 void test_supershortmiss()
@@ -173,6 +175,8 @@ void test_longmiss()
   while (ExtTimer1.get() - startTicks < actionTicks + ExtTimer1.getMaxSysTicks() + 1000ul - startTicks) {}
 
   TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
 }
 
 void test_origin()
