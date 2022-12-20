@@ -32,9 +32,20 @@ void tearDown(void) {
   setOutputCompareAction(TIMER1A, CompareAction::Nothing);
 }
 
+int digitalReadPWM(uint8_t pin)
+{
+	uint8_t bit = digitalPinToBitMask(pin);
+	uint8_t port = digitalPinToPort(pin);
+
+	if (*portInputRegister(port) & bit) return HIGH;
+	return LOW;
+}
+
+
 void scheduleAndTest(ticksExtraRange_t actionTicks, CompareAction action)
 {
-  int pinStartState = digitalRead(11);
+
+  int pinStartState = digitalReadPWM(11);
 
   ticksExtraRange_t startTicks = ExtTimer1.get();
 
@@ -60,15 +71,15 @@ void scheduleAndTest(ticksExtraRange_t actionTicks, CompareAction action)
 
   if (CompareAction::Set == action)
   {
-    TEST_ASSERT_EQUAL_MESSAGE(HIGH, digitalRead(11), message);
+    TEST_ASSERT_EQUAL_MESSAGE(HIGH, digitalReadPWM(11), message);
   }
   else if (CompareAction::Clear == action)
   {
-    TEST_ASSERT_EQUAL_MESSAGE(LOW, digitalRead(11), message);
+    TEST_ASSERT_EQUAL_MESSAGE(LOW, digitalReadPWM(11), message);
   }
   else if (CompareAction::Toggle == action)
   {
-    TEST_ASSERT_NOT_EQUAL_MESSAGE(pinStartState, digitalRead(11), message);
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(pinStartState, digitalReadPWM(11), message);
   }
 }
 
@@ -105,10 +116,6 @@ void test_timerOverflowOrigin()
 
 void test_supershortmiss()
 {
-
-	uint8_t bit = digitalPinToBitMask(11);
-	uint8_t port = digitalPinToPort(11);
-
   // Schedule something without enough lead time
   ticksExtraRange_t startTicks = ExtTimer1.get();
 
@@ -118,15 +125,11 @@ void test_supershortmiss()
 
   TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
 
-  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
 }
 
 void test_shortmiss()
 {
-
-	uint8_t bit = digitalPinToBitMask(11);
-	uint8_t port = digitalPinToPort(11);
-
   // Schedule something without enough lead time
   ticksExtraRange_t startTicks = ExtTimer1.get();
 
@@ -136,7 +139,7 @@ void test_shortmiss()
 
   TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
 
-  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
 
   // Schedule something with enough lead time
   startTicks = ExtTimer1.get();
@@ -149,7 +152,7 @@ void test_shortmiss()
 
   TEST_ASSERT_EQUAL(TimerAction::Idle, TimerAction1A.getState());
 
-  TEST_ASSERT_TRUE(*portInputRegister(port) & bit);
+  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
 }
 
 void test_longmiss()
@@ -174,9 +177,6 @@ void test_longmiss()
 
 void test_origin()
 {
-	uint8_t bit = digitalPinToBitMask(11);
-	uint8_t port = digitalPinToPort(11);
-
   // Should miss since there isn't enough lead time
   ticksExtraRange_t originTicks = ExtTimer1.get();
 
@@ -186,7 +186,7 @@ void test_origin()
 
   TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
 
-  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
 
   // Should be scheduled since TimerAction thinks the action is in the distant future
   originTicks = ExtTimer1.get();
@@ -197,7 +197,7 @@ void test_origin()
 
   TEST_ASSERT_EQUAL(TimerAction::WaitingToSchedule, TimerAction1A.getState());
 
-  TEST_ASSERT_FALSE(*portInputRegister(port) & bit);
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
 }
 
 void setup() {
