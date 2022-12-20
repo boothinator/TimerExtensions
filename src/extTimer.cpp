@@ -212,23 +212,22 @@ uint32_t ExtTimer::getOverflowCount() const
 
 void ExtTimer::resetOverflowCount()
 {
-  char prevSREG = SREG;
-  cli();
-
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  {
+    // Use the Arduino overflow variable if defined
 #ifdef timer0_overflow_count
-  if (TIMER0 == _timer)
-  {
-    timer0_overflow_count = 0;
-  }
-  else
-  {
-    _overflowTicks = 0;
-  }
+    if (TIMER0 == _timer)
+    {
+      timer0_overflow_count = 0;
+    }
+    else
+    {
+      _overflowTicks = 0;
+    }
 #else
-  _overflowTicks = 0;
+    _overflowTicks = 0;
 #endif
-
-  SREG = prevSREG; // restore interrupt state of the caller
+  }
 }
 
 int ExtTimer::getTimer() const
