@@ -83,9 +83,9 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
 bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
     TimerActionCallback cb, void *cbData)
 {
-  ticksExtraRange_t curTicks = _extTimer->get();
+  ticksExtraRange_t originTicks = _extTimer->get();
 
-  return schedule(actionTicks, action, curTicks, cb, cbData);
+  return schedule(actionTicks, action, originTicks, cb, cbData);
 }
 
 void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)
