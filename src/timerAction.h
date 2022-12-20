@@ -78,6 +78,7 @@ private:
 
   void tryScheduleSysRange(ticksExtraRange_t curTicks);
   bool tryProcessActionInPast(ticksExtraRange_t curTicks);
+  ticksExtraRange_t getBackdateTicks();
 };
 
 // TODO: others

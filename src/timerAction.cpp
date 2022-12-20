@@ -80,10 +80,37 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   return successful;
 }
 
+ticksExtraRange_t TimerAction::getBackdateTicks()
+{
+  static constexpr ticksExtraRange_t backdateClockCycles = 8192ul;
+
+  TimerClock clk = getTimerClock(_timer);
+
+  switch(clk)
+  {
+    case TimerClock::Clk:
+      return backdateClockCycles / clockCyclesPerTick(TimerClock::Clk);
+    case TimerClock::ClkDiv8:
+      return backdateClockCycles / clockCyclesPerTick(TimerClock::ClkDiv8);
+    case TimerClock::ClkDiv32:
+      return backdateClockCycles / clockCyclesPerTick(TimerClock::ClkDiv32);
+    case TimerClock::ClkDiv64:
+      return backdateClockCycles / clockCyclesPerTick(TimerClock::ClkDiv64);
+    case TimerClock::ClkDiv128:
+      return backdateClockCycles / clockCyclesPerTick(TimerClock::ClkDiv128);
+    case TimerClock::ClkDiv256:
+      return backdateClockCycles / clockCyclesPerTick(TimerClock::ClkDiv256);
+    case TimerClock::ClkDiv1024:
+      return backdateClockCycles / clockCyclesPerTick(TimerClock::ClkDiv1024);
+    default:
+      return 0;
+  }
+}
+
 bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
     TimerActionCallback cb, void *cbData)
 {
-  ticksExtraRange_t originTicks = _extTimer->get();
+  ticksExtraRange_t originTicks = _extTimer->get() - getBackdateTicks();
 
   return schedule(actionTicks, action, originTicks, cb, cbData);
 }
