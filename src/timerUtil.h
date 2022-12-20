@@ -21,13 +21,14 @@
 
 #include "timerTypes.h"
 
-enum class TimerClock { None, Clk, ClkDiv8, ClkDiv32, ClkDiv64, ClkDiv128, ClkDiv256, ClkDiv1024 };
+enum class TimerClock : uint16_t { None = 0, Clk = 1, ClkDiv8 = 8, ClkDiv32 = 32,
+  ClkDiv64 = 64, ClkDiv128 = 128, ClkDiv256 = 256, ClkDiv1024 = 1024 };
 
-enum class TimerMode { Normal, CTC, FastPWM, PWM_PC, PWM_PFC};
+enum class TimerMode : uint8_t { Normal, CTC, FastPWM, PWM_PC, PWM_PFC};
 
-enum class TimerResolution { NA, _8Bit, _9Bit, _10Bit, ICR, OCRA };
+enum class TimerResolution : uint8_t { NA, _8Bit, _9Bit, _10Bit, ICR, OCRA };
 
-enum class TimerType { NotATimer, _8Bit, _16Bit };
+enum class TimerType : uint8_t { NotATimer, _8Bit, _16Bit };
 
 TimerType getTimerType(uint8_t timer);
 
@@ -51,7 +52,10 @@ void clearInputCapture(uint8_t timer);
 void setInputCaptureEdge(uint8_t timer, uint8_t edge);
 ticks16_t getInputCapture(uint8_t timer, bool clear = true);
 
-int clockCyclesPerTick(TimerClock clock);
+constexpr int clockCyclesPerTick(TimerClock clock)
+{
+  return static_cast<int>(clock);
+}
 
 int ticksToClockCycles(ticksExtraRange_t ticks, TimerClock clock);
 int ticksToMilliseconds(ticksExtraRange_t ticks, TimerClock clock);

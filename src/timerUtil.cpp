@@ -821,29 +821,6 @@ ticks16_t getInputCapture(uint8_t timer, bool clear)
   }
 }
 
-int clockCyclesPerTick(TimerClock clock)
-{
-  switch (clock)
-  {
-    case TimerClock::Clk:
-      return 1;
-    case TimerClock::ClkDiv8:
-      return 8;
-    case TimerClock::ClkDiv32:
-      return 32;
-    case TimerClock::ClkDiv64:
-      return 64;
-    case TimerClock::ClkDiv128:
-      return 128;
-    case TimerClock::ClkDiv256:
-      return 256;
-    case TimerClock::ClkDiv1024:
-      return 1024;
-    default:
-      return 0;
-  }
-}
-
 constexpr int clockCyclesPerMillisecond = F_CPU / 1000;
 constexpr int clockCyclesPerMicrosecond = F_CPU / 1000000;
 
