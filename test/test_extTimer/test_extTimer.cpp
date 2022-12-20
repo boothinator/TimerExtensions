@@ -34,8 +34,9 @@ void tearDown(void) {
 
 void test_set()
 {
-  ticksExtraRange_t expected = 0xFF00;//0xabcdef01;
+  ticksExtraRange_t expected = 0xabcdef01;
   ticks16_t expected16 = static_cast<ticks16_t>(expected);
+  ticksExtraRange_t expectedOverflowCount = (expected & 0xFFFF0000) >> 16;
 
   setTimerClock(TIMER1, TimerClock::None);
 
@@ -48,6 +49,7 @@ void test_set()
 
   TEST_ASSERT_EQUAL_UINT16(expected16, tcnt);
   TEST_ASSERT_EQUAL(expected, ExtTimer1.get());
+  TEST_ASSERT_EQUAL(ExtTimer1.getOverflowCount(), expectedOverflowCount);
 
   bool tov = (TIFR1 & (1 << TOV1)) == (1 << TOV1);
 
