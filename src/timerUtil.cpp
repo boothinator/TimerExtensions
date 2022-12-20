@@ -264,7 +264,7 @@ TimerClock getTimerClock(uint8_t timer)
     return TimerClock::None;
   }
 
-  uint8_t csBits = *TCCRB & 0b11111000;
+  uint8_t csBits = *TCCRB & 0b00000111;
 
   switch (csBits)
   {
