@@ -60,7 +60,10 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
 
       if (!didHit)
       {
+        // Disable the interrupt and set previous compare action
         setOutputCompareAction(_timer, _prevCompareAction);
+        *_extTimer->getTIMSK() &= ~(1 << _ocie);
+        
         _state = MissedAction;
         successful = false;
 
