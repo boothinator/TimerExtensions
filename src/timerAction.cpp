@@ -69,8 +69,6 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
 
         if (_cb) {
           _cb(this, _cbData);
-          _cb = nullptr;
-          _cbData = nullptr;
         }
       }
     }
@@ -196,8 +194,6 @@ bool TimerAction::tryProcessActionInPast(ticksExtraRange_t curTicks)
 
     if (_cb) {
       _cb(this, _cbData);
-      _cb = nullptr;
-      _cbData = nullptr;
     }
 
     return true;
