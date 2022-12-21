@@ -25,7 +25,7 @@
 
 char message[MAX_MESSAGE_LEN];
 
-bool cbCalled = false;
+volatile bool cbCalled = false;
 
 void setUp(void) {
   pinMode(11, OUTPUT);
@@ -283,6 +283,8 @@ void test_cb()
   ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
 
   TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
+
+  while (ExtTimer1.get() < actionTicks + 100) {}
 
   TEST_ASSERT_TRUE(cbCalled);
 }
