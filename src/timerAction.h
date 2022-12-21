@@ -85,12 +85,96 @@ private:
   ticksExtraRange_t getBackdateTicks();
 };
 
-// TODO: others
+#ifdef HAVE_TCNT0
+
+extern TimerAction TimerAction0A;
+extern TimerAction TimerAction0B;
+
+#endif // HAVE_TCNT0
 
 #ifdef HAVE_TCNT1
 
 extern TimerAction TimerAction1A;
+extern TimerAction TimerAction1B;
+#ifdef OCR1C
+extern TimerAction TimerAction1C;
+#endif // OCR1C
 
 #endif // HAVE_TCNT1
+
+#ifdef HAVE_TCNT2
+
+extern TimerAction TimerAction2A;
+extern TimerAction TimerAction2B;
+
+#endif // HAVE_TCNT2
+
+#ifdef HAVE_TCNT3
+
+extern TimerAction TimerAction3A;
+extern TimerAction TimerAction3B;
+extern TimerAction TimerAction3C;
+
+#endif // HAVE_TCNT3
+
+#ifdef HAVE_TCNT4
+
+extern TimerAction TimerAction4A;
+extern TimerAction TimerAction4B;
+extern TimerAction TimerAction4C;
+
+#endif // HAVE_TCNT4
+
+#ifdef HAVE_TCNT5
+
+extern TimerAction TimerAction5A;
+extern TimerAction TimerAction5B;
+extern TimerAction TimerAction5C;
+
+#endif // HAVE_TCNT5
+
+
+
+#ifdef ARDUINO_AVR_UNO
+
+#define TimerActionPin6 TimerAction0A
+#define TimerActionPin5 TimerAction0B
+
+#define TimerActionPin9 TimerAction1A
+#define TimerActionPin10 TimerAction1B
+
+#define TimerActionPin11 TimerAction2A
+#define TimerActionPin3 TimerAction2B
+
+#endif // ARDUINO_AVR_UNO
+
+
+
+#ifdef ARDUINO_AVR_MEGA2560
+
+#define TimerActionPin13Timer0 TimerAction0A
+#define TimerActionPin4 TimerAction0B
+
+#define TimerActionPin11 TimerAction1A
+#define TimerActionPin12 TimerAction1B
+#define TimerActionPin13Timer1 TimerAction1C
+
+#define TimerActionPin10 TimerAction2A
+#define TimerActionPin9 TimerAction2B
+
+#define TimerActionPin5 TimerAction3A
+#define TimerActionPin2 TimerAction3B
+#define TimerActionPin3 TimerAction3C
+
+#define TimerActionPin6 TimerAction4A
+#define TimerActionPin7 TimerAction4B
+#define TimerActionPin8 TimerAction4C
+
+#define TimerActionPin46 TimerAction5A
+#define TimerActionPin45 TimerAction5B
+#define TimerActionPin44 TimerAction5C
+
+#endif // ARDUINO_AVR_MEGA2560
+
 
 #endif // TIMER_EXT_TIMER_ACTION_H_

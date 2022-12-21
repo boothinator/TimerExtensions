@@ -14,27 +14,25 @@
 // You should have received a copy of the GNU Lesser Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef TIMER_EXT_PULSE_GEN0B_H_
-#define TIMER_EXT_PULSE_GEN0B_H_
+#ifndef TIMER_EXT_TIMER_ACTION1C_H_
+#define TIMER_EXT_TIMER_ACTION1C_H_
 
-#include "pulseGen.h"
+#include "timerAction.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
 #include "extTimer.h"
 
-#ifdef OCR0B
+#ifdef OCR1C
 
-// Note: The Force Output Compare bits are on TCCRxB for 8-bit counters, but
-// they're on TCCRxC for 16-bit counters
-PulseGen PulseGen0B(&OCR0B, nullptr, &TCCR0A, &TCCR0B, &TCCR0B, &TIMSK0, COM0B1, COM0B0, FOC0B, OCIE0B, &ExtTimer0);
+TimerAction TimerAction1C(TIMER1C, &ExtTimer1, OCIE1C, OCF1C);
 
-ISR(TIMER0_COMPB_vect)
+ISR(TIMER1_COMPC_vect)
 {
-  PulseGen0B.processCompareEvent();
+  TimerAction1C.processInterrupt();
 }
 
 #endif
 
-#endif // TIMER_EXT_PULSE_GEN0B_H_
+#endif // TIMER_EXT_TIMER_ACTION1C_H_

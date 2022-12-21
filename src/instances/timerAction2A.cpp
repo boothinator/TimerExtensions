@@ -14,25 +14,25 @@
 // You should have received a copy of the GNU Lesser Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef TIMER_EXT_PULSE_GEN5A_H_
-#define TIMER_EXT_PULSE_GEN5A_H_
+#ifndef TIMER_EXT_TIMER_ACTION2A_H_
+#define TIMER_EXT_TIMER_ACTION2A_H_
 
-#include "pulseGen.h"
+#include "timerAction.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
 #include "extTimer.h"
 
-#ifdef OCR5A
+#ifdef OCR2A
 
-PulseGen PulseGen5A(&OCR5AL, &OCR5AH, &TCCR5A, &TCCR5B, &TCCR5C, &TIMSK5, COM5A1, COM5A0, FOC5A, OCIE5A, &ExtTimer5);
+TimerAction TimerAction2A(TIMER2A, &ExtTimer2, OCIE2A, OCF2A);
 
-ISR(TIMER5_COMPA_vect)
+ISR(TIMER2_COMPA_vect)
 {
-  PulseGen5A.processCompareEvent();
+  TimerAction2A.processInterrupt();
 }
 
 #endif
 
-#endif // TIMER_EXT_PULSE_GEN5A_H_
+#endif // TIMER_EXT_TIMER_ACTION2A_H_
