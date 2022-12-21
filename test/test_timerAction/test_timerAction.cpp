@@ -25,11 +25,15 @@
 
 char message[MAX_MESSAGE_LEN];
 
+bool cbCalled = false;
+
 void setUp(void) {
   pinMode(11, OUTPUT);
 
   setTimerClock(TIMER1, TimerClock::Clk);
   setTimerMode(TIMER1, TimerMode::Normal);
+
+  cbCalled = false;
 }
 
 void tearDown(void) {
@@ -124,6 +128,20 @@ void test_supershortmiss()
 {
   // Schedule something without enough lead time
   ticksExtraRange_t startTicks = ExtTimer1.get();
+
+  ticksExtraRange_t actionTicks = startTicks + 100ul;
+
+  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, startTicks));
+
+  TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+}
+
+void test_pastmiss()
+{
+  // Schedule something without enough lead time
+  ticksExtraRange_t startTicks = ExtTimer1.get() - 1000;
 
   ticksExtraRange_t actionTicks = startTicks + 100ul;
 
@@ -255,6 +273,47 @@ void test_cancel_failure()
   TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
 }
 
+void cb(TimerAction *timerAction, void *data)
+{
+  cbCalled = true;
+}
+
+void test_cb()
+{
+  ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
+
+  TEST_ASSERT_TRUE(cbCalled);
+}
+
+void test_cbMiss()
+{
+  ticksExtraRange_t actionTicks = ExtTimer1.get();
+
+  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
+
+  TEST_ASSERT_TRUE(cbCalled);
+}
+
+void cbChained(TimerAction *timerAction, void *data)
+{
+  ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
+}
+
+void test_cbChained()
+{
+  ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
+
+  while (ExtTimer1.get() < actionTicks + 3000) {}
+
+  TEST_ASSERT_TRUE(cbCalled);
+}
+
 void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
@@ -269,10 +328,14 @@ void setup() {
   RUN_TEST(test_longmiss);
   RUN_TEST(test_shortmiss);
   RUN_TEST(test_supershortmiss);
+  RUN_TEST(test_pastmiss);
   RUN_TEST(test_origin);
   RUN_TEST(test_cancel_success);
   RUN_TEST(test_cancel_long_success);
   RUN_TEST(test_cancel_failure);
+  RUN_TEST(test_cb);
+  RUN_TEST(test_cbMiss);
+  RUN_TEST(test_cbChained);
 
   UNITY_END(); // stop unit testing
 }

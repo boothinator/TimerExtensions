@@ -76,7 +76,7 @@ private:
   TimerActionCallback _cb = nullptr;
   void *_cbData = nullptr;
 
-  State _state = Idle;
+  volatile State _state = Idle;
 
   CompareAction _prevCompareAction;
 

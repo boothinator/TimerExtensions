@@ -66,6 +66,8 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
 
         if (_cb) {
           _cb(this, _cbData);
+          _cb = nullptr;
+          _cbData = nullptr;
         }
       }
     }
@@ -174,7 +176,7 @@ bool TimerAction::cancel()
 bool TimerAction::tryProcessActionInPast(ticksExtraRange_t curTicks)
 {
   // The action is now in the past
-  if (curTicks - _originTicks > _actionTicks - _originTicks)
+  if (curTicks - _originTicks >= _actionTicks - _originTicks)
   {
     // Disable interrupt
     *_extTimer->getTIMSK() &= ~(1 << _ocie);
@@ -191,6 +193,8 @@ bool TimerAction::tryProcessActionInPast(ticksExtraRange_t curTicks)
 
     if (_cb) {
       _cb(this, _cbData);
+      _cb = nullptr;
+      _cbData = nullptr;
     }
 
     return true;
