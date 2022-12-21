@@ -194,6 +194,8 @@ void test_origin()
 
   TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
 
+  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+
   TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
 
   // Should be scheduled since TimerAction thinks the action is in the distant future
@@ -206,6 +208,51 @@ void test_origin()
   TEST_ASSERT_EQUAL(TimerAction::WaitingToSchedule, TimerAction1A.getState());
 
   TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+}
+
+void test_cancel_success()
+{
+  ticksExtraRange_t originTicks = ExtTimer1.get();
+
+  ticksExtraRange_t actionTicks = originTicks + 2000;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+
+  TEST_ASSERT_TRUE(TimerAction1A.cancel());
+
+  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+}
+
+void test_cancel_long_success()
+{
+  ticksExtraRange_t originTicks = ExtTimer1.get();
+
+  ticksExtraRange_t actionTicks = originTicks + 200000;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+
+  TEST_ASSERT_TRUE(TimerAction1A.cancel());
+
+  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+}
+
+void test_cancel_failure()
+{
+  ticksExtraRange_t originTicks = ExtTimer1.get();
+
+  ticksExtraRange_t actionTicks = originTicks + 600;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+
+  TEST_ASSERT_FALSE(TimerAction1A.cancel());
+
+  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+
+  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
 }
 
 void setup() {
@@ -223,6 +270,9 @@ void setup() {
   RUN_TEST(test_shortmiss);
   RUN_TEST(test_supershortmiss);
   RUN_TEST(test_origin);
+  RUN_TEST(test_cancel_success);
+  RUN_TEST(test_cancel_long_success);
+  RUN_TEST(test_cancel_failure);
 
   UNITY_END(); // stop unit testing
 }

@@ -37,6 +37,8 @@ public:
   bool schedule(ticksExtraRange_t actionTicks, CompareAction action, ticksExtraRange_t originTicks,
       TimerActionCallback cb = nullptr, void *cbData = nullptr);
 
+  bool cancel();
+
   void processInterrupt();
 
   State getState() const;
@@ -75,6 +77,8 @@ private:
   void *_cbData = nullptr;
 
   State _state = Idle;
+
+  CompareAction _prevCompareAction;
 
   void tryScheduleSysRange(ticksExtraRange_t curTicks);
   bool tryProcessActionInPast(ticksExtraRange_t curTicks);

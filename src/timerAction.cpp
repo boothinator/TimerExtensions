@@ -21,13 +21,7 @@
 bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
     ticksExtraRange_t originTicks, TimerActionCallback cb, void *cbData)
 {
-  if (Scheduled == _state || WaitingToSchedule == _state)
-  {
-    // Disable interrupt
-    *_extTimer->getTIMSK() &= ~(1 << _ocie);
-  }
-
-  CompareAction prevCompareAction = getOutputCompareAction(_timer);
+  _prevCompareAction = getOutputCompareAction(_timer);
 
   _cb = cb;
   _cbData = cbData;
@@ -45,20 +39,20 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   // Enable the interrupt
   *_extTimer->getTIMSK() |= (1 << _ocie);
 
-  // Set the action and the action time
+  // Set the action
   tryScheduleSysRange(_extTimer->get());
 
   bool successful = true;
 
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
-    // Setting OCR could fire the interrupt, so process first
+    // Set the action time and figure out if it should have hit
     setOutputCompareTicks(_timer, static_cast<uint16_t>(actionTicks));
 
-      ticksExtraRange_t ticksAfterSet = _extTimer->get();
+    ticksExtraRange_t ticksAfterSet = _extTimer->get();
 
-      // Are we now after the action time?
-      bool shouldHaveHit = ticksAfterSet - _originTicks > _actionTicks - _originTicks;
+    // Are we now after the action time?
+    bool shouldHaveHit = ticksAfterSet - _originTicks > _actionTicks - _originTicks;
 
     if (shouldHaveHit)
     {
@@ -66,7 +60,7 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
 
       if (!didHit)
       {
-        setOutputCompareAction(_timer, prevCompareAction);
+        setOutputCompareAction(_timer, _prevCompareAction);
         _state = MissedAction;
         successful = false;
 
@@ -129,6 +123,51 @@ void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)
   {
     // Leave in previous state
     _state = WaitingToSchedule;
+  }
+}
+
+bool TimerAction::cancel()
+{
+  if (WaitingToSchedule == _state)
+  {
+    // Disable the interrupt and set previous compare action
+    *_extTimer->getTIMSK() &= ~(1 << _ocie);
+    setOutputCompareAction(_timer, _prevCompareAction);
+    return true;
+  }
+  else if (Scheduled == _state)
+  {
+    ticks16_t recentPastTime = _extTimer->getSysRange() - 1;
+
+    bool didHit;
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+      // Set the action time to a time in the recent past so it won't hit
+      setOutputCompareTicks(_timer, recentPastTime);
+
+      didHit = *_extTimer->getTIFR() & (1 << _ocf);
+    }
+
+    // Disable the interrupt and set previous compare action
+    *_extTimer->getTIMSK() &= ~(1 << _ocie);
+    setOutputCompareAction(_timer, _prevCompareAction);
+
+    if (didHit)
+    {
+      // We missed the chance to cancel
+      return false;
+    }
+    else
+    {
+      // Cancelled successfully
+      return true;
+    }
+  }
+  else
+  {
+    // Totally missed
+    return false;
   }
 }
 
