@@ -71,6 +71,86 @@ void test_pulse()
 
 }
 
+void test_pulse0a()
+{
+  TimerAction0A.getExtTimer()->configure();
+  PulseGen pulseGen(TimerAction0A);
+
+  ticksExtraRange_t start = ExtTimer0.get() + 2000;
+  ticksExtraRange_t end = start + 2000;
+
+  TEST_ASSERT_TRUE(pulseGen.schedule(start, end));
+
+  TEST_ASSERT_EQUAL(PulseGen::ScheduledStart, pulseGen.getState());
+
+  while(pulseGen.getState() == PulseGen::ScheduledStart && ExtTimer0.get() < start) {}
+
+  //TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
+
+  TEST_ASSERT_EQUAL(PulseGen::ScheduledEnd, pulseGen.getState());
+  
+  while(pulseGen.getState() == PulseGen::ScheduledEnd && ExtTimer0.get() < end) {}
+
+  TEST_ASSERT_EQUAL(PulseGen::Idle, pulseGen.getState());
+
+  //TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+
+
+}
+
+void test_pulse2a()
+{
+  TimerAction2A.getExtTimer()->configure();
+  PulseGen pulseGen(TimerAction2A);
+
+  ticksExtraRange_t start = ExtTimer2.get() + 2000;
+  ticksExtraRange_t end = start + 2000;
+
+  TEST_ASSERT_TRUE(pulseGen.schedule(start, end));
+
+  TEST_ASSERT_EQUAL(PulseGen::ScheduledStart, pulseGen.getState());
+
+  while(pulseGen.getState() == PulseGen::ScheduledStart && ExtTimer2.get() < start) {}
+
+  //TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
+
+  TEST_ASSERT_EQUAL(PulseGen::ScheduledEnd, pulseGen.getState());
+  
+  while(pulseGen.getState() == PulseGen::ScheduledEnd && ExtTimer2.get() < end) {}
+
+  TEST_ASSERT_EQUAL(PulseGen::Idle, pulseGen.getState());
+
+  //TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+
+
+}
+
+void test_pulse_long()
+{
+  PulseGen pulseGen(TimerAction1A);
+
+  ticksExtraRange_t start = ExtTimer1.get() + 2000;
+  ticksExtraRange_t end = start + 2000000;
+
+  TEST_ASSERT_TRUE(pulseGen.schedule(start, end));
+
+  TEST_ASSERT_EQUAL(PulseGen::ScheduledStart, pulseGen.getState());
+
+  while(pulseGen.getState() == PulseGen::ScheduledStart && ExtTimer1.get() < start) {}
+
+  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
+
+  TEST_ASSERT_EQUAL(PulseGen::ScheduledEnd, pulseGen.getState());
+  
+  while(pulseGen.getState() == PulseGen::ScheduledEnd && ExtTimer1.get() < end) {}
+
+  TEST_ASSERT_EQUAL(PulseGen::Idle, pulseGen.getState());
+
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+
+
+}
+
 void test_pulse_missStart()
 {
   PulseGen pulseGen(TimerAction1A);
@@ -104,12 +184,14 @@ void test_pulse_missEnd()
 void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
-  //delay(2000);
-  delay(100);
+  delay(2000);
 
   UNITY_BEGIN();    // IMPORTANT LINE!
 
   RUN_TEST(test_pulse);
+  //RUN_TEST(test_pulse0a);
+  //RUN_TEST(test_pulse2a);
+  RUN_TEST(test_pulse_long);
   RUN_TEST(test_pulse_missStart);
   RUN_TEST(test_pulse_missEnd);
 
