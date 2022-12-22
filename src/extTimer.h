@@ -19,6 +19,7 @@
 
 #include "timerTypes.h"
 #include <avr/io.h>
+#include "timerUtil.h"
 
 // Extend the range of 16-bit AVR timers
 class ExtTimer
@@ -26,6 +27,8 @@ class ExtTimer
 public:
   ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk,
     uint8_t toie, volatile uint8_t *tifr, uint8_t tov, uint8_t timer);
+  
+  void configure(TimerClock clock = TimerClock::Clk);
   
   ticksExtraRange_t get() const;
   void set(ticksExtraRange_t ticks);

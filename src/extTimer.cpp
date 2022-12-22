@@ -21,7 +21,6 @@
 #include "util/atomic.h"
 
 #include "timerTypes.h"
-#include "timerUtil.h"
 
 #if !defined(USE_ARDUINO_TIMER0_OVERFLOW) || USE_ARDUINO_TIMER0_OVERFLOW
 
@@ -35,6 +34,10 @@ ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile ui
     _toie(toie), _tifr(tifr), _tov(tov), _timer(timer)
 {
   *_timsk |= _BV(_toie);
+}
+  
+void ExtTimer::configure(TimerClock clock = TimerClock::Clk)
+{
   setTimerClock(_timer, TimerClock::Clk);
   setTimerMode(_timer, TimerMode::Normal);
 }
