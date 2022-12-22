@@ -38,7 +38,7 @@ ExtTimer::ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile ui
   
 void ExtTimer::configure(TimerClock clock)
 {
-  setTimerClock(_timer, TimerClock::Clk);
+  setTimerClock(_timer, clock);
   setTimerMode(_timer, TimerMode::Normal);
 }
 
