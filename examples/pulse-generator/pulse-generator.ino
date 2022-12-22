@@ -29,14 +29,13 @@
  * accuracy.
  */
 
+PulseGen pulseGen(TimerActionPin11);
+
 void setup() {
   Serial.begin(115200);
   // Configure the timer to run at the speed of the system clock, divided by 1024
   // That's 64 microseconds per tick
-  configureTimerClock(ExtTimerPin11.getTimer(), TimerClock::ClkDiv1024);
-
-  // Put timer in Normal timing mode
-  configureTimerMode(ExtTimerPin11.getTimer(), TimerMode::Normal);
+  ExtTimerPin11.configure(TimerClock::ClkDiv1024);
 
   // Configure pin for output
   pinMode(11, OUTPUT);
@@ -44,16 +43,14 @@ void setup() {
 
 void loop() {
   // Only reschedule if it's idle
-  if (PulseGenPin11.getState() == PulseGen::Idle)
+  if (pulseGen.getState() == PulseGen::Idle)
   {
     // Get current ticks for timing
     ticksExtraRange_t nowTicks = ExtTimerPin11.get();
   
     // Schedule pulse start for 50,000 ticks in the future. That's 3.2 seconds.
-    PulseGenPin11.setStart(nowTicks + 50000);
-    
     // Schedule pulse end for 110,000 ticks in the future. That's 6.6 seconds, 
     // for a pulse length of 3.4 seconds, accurate to within 1/16th of a microsecond
-    PulseGenPin11.setEnd(nowTicks + 110000);
+    pulseGen.schedule(nowTicks + 50000, nowTicks + 110000);
   }
 }
