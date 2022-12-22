@@ -28,10 +28,10 @@ void setup() {
   Serial.begin(115200);
 
   // Configure Timer1 to run at the speed of the system clock
-  configureTimerClock(TIMER1, TimerClock::Clk);
+  setTimerClock(TIMER1, TimerClock::Clk);
 
   // Put timer in Normal timing mode
-  configureTimerMode(TIMER1, TimerMode::Normal);
+  setTimerMode(TIMER1, TimerMode::Normal);
 
   unsigned int startTicks = TCNT1;
   Serial.println("Hello World");
