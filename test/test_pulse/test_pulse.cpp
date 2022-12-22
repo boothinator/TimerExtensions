@@ -73,7 +73,7 @@ void test_pulse()
 
 void test_pulse0a()
 {
-  TimerAction0A.getExtTimer()->configure();
+  TimerAction0A.getExtTimer()->configure(TimerClock::ClkDiv8);
   PulseGen pulseGen(TimerAction0A);
 
   ticksExtraRange_t start = ExtTimer0.get() + 2000;
@@ -100,7 +100,7 @@ void test_pulse0a()
 
 void test_pulse2a()
 {
-  TimerAction2A.getExtTimer()->configure();
+  TimerAction2A.getExtTimer()->configure(TimerClock::ClkDiv8);
   PulseGen pulseGen(TimerAction2A);
 
   ticksExtraRange_t start = ExtTimer2.get() + 2000;
@@ -189,8 +189,8 @@ void setup() {
   UNITY_BEGIN();    // IMPORTANT LINE!
 
   RUN_TEST(test_pulse);
-  //RUN_TEST(test_pulse0a);
-  //RUN_TEST(test_pulse2a);
+  RUN_TEST(test_pulse0a);
+  RUN_TEST(test_pulse2a);
   RUN_TEST(test_pulse_long);
   RUN_TEST(test_pulse_missStart);
   RUN_TEST(test_pulse_missEnd);
