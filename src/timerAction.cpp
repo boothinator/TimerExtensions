@@ -118,7 +118,7 @@ void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)
   uint32_t actionTicksDiff = _actionTicks - curTicks;
 
   // Is the event in time range?
-  if (actionTicksDiff < _extTimer->getMaxSysTicks())
+  if (actionTicksDiff <= _extTimer->getMaxSysTicks())
   {
     setOutputCompareAction(_timer, _action);
     _state = Scheduled;
