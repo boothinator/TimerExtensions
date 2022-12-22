@@ -1,4 +1,4 @@
-#include <timerAction.h>
+#include <timerExtensions.h>
 
 /*
  * It's pretty easy to set an alarm, even one that's quite far in the future.

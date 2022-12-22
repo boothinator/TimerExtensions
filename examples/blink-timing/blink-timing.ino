@@ -1,6 +1,4 @@
-#include <timerUtil.h>
-#include <timerInterrupts.h>
-#include <extTimer.h>
+#include <timerExtensions.h>
 
 /*
  * Arduino (and AVR) chips often have input capture units that
