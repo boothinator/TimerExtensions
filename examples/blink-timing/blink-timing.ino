@@ -59,7 +59,7 @@ void inputCaptureInterrupt(ticks16_t ticks)
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   uint8_t timer = inputCapturePinToTimer(8);
   

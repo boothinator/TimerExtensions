@@ -32,7 +32,6 @@
 PulseGen pulseGen(TimerActionPin11);
 
 void setup() {
-  Serial.begin(115200);
   // Configure the timer to run at the speed of the system clock, divided by 1024
   // That's 64 microseconds per tick
   ExtTimerPin11.configure(TimerClock::ClkDiv1024);

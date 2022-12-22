@@ -25,7 +25,7 @@
  * you are finished using the timer for other purposes.
  */
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   // Configure Timer1 to run at the speed of the system clock
   setTimerClock(TIMER1, TimerClock::Clk);
