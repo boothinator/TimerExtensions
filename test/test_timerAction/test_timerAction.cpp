@@ -27,17 +27,20 @@ char message[MAX_MESSAGE_LEN];
 
 volatile int cbCallCount = 0;
 
-void setUp(void) {
-  pinMode(11, OUTPUT);
+int pin = 11;
+ExtTimer *extTimer = &ExtTimer1;
+TimerAction *timerAction = &TimerAction1A;
 
-  setTimerClock(TIMER1, TimerClock::Clk);
-  setTimerMode(TIMER1, TimerMode::Normal);
+void setUp(void) {
+  pinMode(pin, OUTPUT);
+
+  extTimer->configure(TimerClock::Clk);
 
   cbCallCount = 0;
 }
 
 void tearDown(void) {
-  setOutputCompareAction(TIMER1A, CompareAction::Nothing);
+  setOutputCompareAction(timerAction->getTimer(), CompareAction::Nothing);
 }
 
 int digitalReadPWM(uint8_t pin)
@@ -53,130 +56,130 @@ int digitalReadPWM(uint8_t pin)
 void scheduleAndTest(ticksExtraRange_t actionTicks, CompareAction action)
 {
 
-  int pinStartState = digitalReadPWM(11);
+  int pinStartState = digitalReadPWM(pin);
 
-  ticksExtraRange_t startTicks = ExtTimer1.get();
+  ticksExtraRange_t startTicks = extTimer->get();
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, action));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, action));
 
   bool timedOut = false;
 
   while ((
-      TimerAction1A.getState() == TimerAction::Scheduled
-      || TimerAction1A.getState() == TimerAction::WaitingToSchedule
+      timerAction->getState() == TimerAction::Scheduled
+      || timerAction->getState() == TimerAction::WaitingToSchedule
     )
     && !timedOut)
   {
-    timedOut = ExtTimer1.get() - startTicks > actionTicks - startTicks + 1000;
+    timedOut = extTimer->get() - startTicks > actionTicks - startTicks + 1000;
   }
 
   snprintf(message, MAX_MESSAGE_LEN, "scheduleAndTest() ActionTicks: %lx, CurTicks: %lx, OriginTicks: %lx, Action: %u, State: %u",
-    actionTicks, ExtTimer1.get(), TimerAction1A.getOriginTicks(), action, TimerAction1A.getState());
+    actionTicks, extTimer->get(), timerAction->getOriginTicks(), action, timerAction->getState());
 
   TEST_ASSERT_FALSE_MESSAGE(timedOut, message);
 
-  TEST_ASSERT_EQUAL_MESSAGE(TimerAction::Idle, TimerAction1A.getState(), message);
+  TEST_ASSERT_EQUAL_MESSAGE(TimerAction::Idle, timerAction->getState(), message);
 
   if (CompareAction::Set == action)
   {
-    TEST_ASSERT_EQUAL_MESSAGE(HIGH, digitalReadPWM(11), message);
+    TEST_ASSERT_EQUAL_MESSAGE(HIGH, digitalReadPWM(pin), message);
   }
   else if (CompareAction::Clear == action)
   {
-    TEST_ASSERT_EQUAL_MESSAGE(LOW, digitalReadPWM(11), message);
+    TEST_ASSERT_EQUAL_MESSAGE(LOW, digitalReadPWM(pin), message);
   }
   else if (CompareAction::Toggle == action)
   {
-    TEST_ASSERT_NOT_EQUAL_MESSAGE(pinStartState, digitalReadPWM(11), message);
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(pinStartState, digitalReadPWM(pin), message);
   }
 }
 
 void test_basic()
 {
-  scheduleAndTest(ExtTimer1.get() + 10000ul, CompareAction::Set);
-  scheduleAndTest(ExtTimer1.get() + 10000ul, CompareAction::Clear);
-  scheduleAndTest(ExtTimer1.get() + 10000ul, CompareAction::Toggle);
-  scheduleAndTest(ExtTimer1.get() + 1000000ul, CompareAction::Set);
-  scheduleAndTest(ExtTimer1.get() + 1000000ul, CompareAction::Clear);
-  scheduleAndTest(ExtTimer1.get() + 1000000ul, CompareAction::Toggle);
+  scheduleAndTest(extTimer->get() + 10000ul, CompareAction::Set);
+  /*scheduleAndTest(extTimer->get() + 10000ul, CompareAction::Clear);
+  scheduleAndTest(extTimer->get() + 10000ul, CompareAction::Toggle);
+  scheduleAndTest(extTimer->get() + 1000000ul, CompareAction::Set);
+  scheduleAndTest(extTimer->get() + 1000000ul, CompareAction::Clear);
+  scheduleAndTest(extTimer->get() + 1000000ul, CompareAction::Toggle);*/
 }
 
 void test_timerOverflow()
 {
   const ticksExtraRange_t actionTicks = 100ul;
-  ExtTimer1.set(actionTicks - 1000ul);
+  extTimer->set(actionTicks - 2000ul);
   scheduleAndTest(actionTicks, CompareAction::Set);
 }
 
 void test_timerOverflowOrigin()
 {
   ticksExtraRange_t originTicks = UINT32_MAX - 10000ul;
-  ExtTimer1.set(originTicks);
+  extTimer->set(originTicks);
 
   ticksExtraRange_t actionTicks = 100ul;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, originTicks));
 
-  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+  while (extTimer->get() - originTicks < actionTicks - originTicks) {}
 
-  TEST_ASSERT_EQUAL(TimerAction::Idle, TimerAction1A.getState());
+  TEST_ASSERT_EQUAL(TimerAction::Idle, timerAction->getState());
 
-  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(pin));
 }
 
 void test_supershortmiss()
 {
   // Schedule something without enough lead time
-  ticksExtraRange_t startTicks = ExtTimer1.get();
+  ticksExtraRange_t startTicks = extTimer->get();
 
   ticksExtraRange_t actionTicks = startTicks + 100ul;
 
-  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, startTicks));
+  TEST_ASSERT_FALSE(timerAction->schedule(actionTicks, CompareAction::Set, startTicks));
 
-  TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+  TEST_ASSERT_EQUAL(TimerAction::MissedAction, timerAction->getState());
 
-  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(pin));
 }
 
 void test_pastmiss()
 {
   // Schedule something without enough lead time
-  ticksExtraRange_t startTicks = ExtTimer1.get() - 1000;
+  ticksExtraRange_t startTicks = extTimer->get() - 1000;
 
   ticksExtraRange_t actionTicks = startTicks + 100ul;
 
-  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, startTicks));
+  TEST_ASSERT_FALSE(timerAction->schedule(actionTicks, CompareAction::Set, startTicks));
 
-  TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+  TEST_ASSERT_EQUAL(TimerAction::MissedAction, timerAction->getState());
 
-  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(pin));
 }
 
 void test_shortmiss()
 {
   // Schedule something without enough lead time
-  ticksExtraRange_t startTicks = ExtTimer1.get();
+  ticksExtraRange_t startTicks = extTimer->get();
 
   ticksExtraRange_t actionTicks = startTicks + 200ul;
 
-  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set));
+  TEST_ASSERT_FALSE(timerAction->schedule(actionTicks, CompareAction::Set));
 
-  TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+  TEST_ASSERT_EQUAL(TimerAction::MissedAction, timerAction->getState());
 
-  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(pin));
 
   // Schedule something with enough lead time
-  startTicks = ExtTimer1.get();
+  startTicks = extTimer->get();
 
-  actionTicks = startTicks + 800ul;
+  actionTicks = startTicks + 1000ul;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set));
 
-  while (ExtTimer1.get() - startTicks < actionTicks - startTicks) {}
+  while (extTimer->get() - startTicks < actionTicks - startTicks) {}
 
-  TEST_ASSERT_EQUAL(TimerAction::Idle, TimerAction1A.getState());
+  TEST_ASSERT_EQUAL(TimerAction::Idle, timerAction->getState());
 
-  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(pin));
 }
 
 void test_longmiss()
@@ -185,92 +188,92 @@ void test_longmiss()
   // register allows and turning off interrupts until after the action time
   noInterrupts();
 
-  ticksExtraRange_t startTicks = ExtTimer1.get();
+  ticksExtraRange_t startTicks = extTimer->get();
 
-  const ticksExtraRange_t actionTicks = startTicks + ExtTimer1.getMaxSysTicks() + 1000ul;
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set));
+  const ticksExtraRange_t actionTicks = startTicks + extTimer->getMaxSysTicks() + 1000ul;
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set));
 
-  while (ExtTimer1.get() - startTicks < actionTicks - startTicks) {}
+  while (extTimer->get() - startTicks < actionTicks - startTicks) {}
   
   // Now that the action time has passed, enable interrupts and let it process
   interrupts();
-  while (ExtTimer1.get() - startTicks < actionTicks + ExtTimer1.getMaxSysTicks() + 1000ul - startTicks) {}
+  while (extTimer->get() - startTicks < actionTicks + extTimer->getMaxSysTicks() + 1000ul - startTicks) {}
 
-  TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+  TEST_ASSERT_EQUAL(TimerAction::MissedAction, timerAction->getState());
 
-  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(pin));
 }
 
 void test_origin()
 {
   // Should miss since there isn't enough lead time
-  ticksExtraRange_t originTicks = ExtTimer1.get();
+  ticksExtraRange_t originTicks = extTimer->get();
 
   ticksExtraRange_t actionTicks = originTicks;
 
-  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+  TEST_ASSERT_FALSE(timerAction->schedule(actionTicks, CompareAction::Set, originTicks));
 
-  TEST_ASSERT_EQUAL(TimerAction::MissedAction, TimerAction1A.getState());
+  TEST_ASSERT_EQUAL(TimerAction::MissedAction, timerAction->getState());
 
-  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+  while (extTimer->get() - originTicks < actionTicks - originTicks) {}
 
-  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(pin));
 
   // Should be scheduled since TimerAction thinks the action is in the distant future
-  originTicks = ExtTimer1.get();
+  originTicks = extTimer->get();
 
   actionTicks = originTicks - 1ul;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, originTicks));
 
-  TEST_ASSERT_EQUAL(TimerAction::WaitingToSchedule, TimerAction1A.getState());
+  TEST_ASSERT_EQUAL(TimerAction::WaitingToSchedule, timerAction->getState());
 
-  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(pin));
 }
 
 void test_cancel_success()
 {
-  ticksExtraRange_t originTicks = ExtTimer1.get();
+  ticksExtraRange_t originTicks = extTimer->get();
 
   ticksExtraRange_t actionTicks = originTicks + 2000;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, originTicks));
 
-  TEST_ASSERT_TRUE(TimerAction1A.cancel());
+  TEST_ASSERT_TRUE(timerAction->cancel());
 
-  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+  while (extTimer->get() - originTicks < actionTicks - originTicks) {}
 
-  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(pin));
 }
 
 void test_cancel_long_success()
 {
-  ticksExtraRange_t originTicks = ExtTimer1.get();
+  ticksExtraRange_t originTicks = extTimer->get();
 
   ticksExtraRange_t actionTicks = originTicks + 200000;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, originTicks));
 
-  TEST_ASSERT_TRUE(TimerAction1A.cancel());
+  TEST_ASSERT_TRUE(timerAction->cancel());
 
-  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+  while (extTimer->get() - originTicks < actionTicks - originTicks) {}
 
-  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(LOW, digitalReadPWM(pin));
 }
 
 void test_cancel_failure()
 {
-  ticksExtraRange_t originTicks = ExtTimer1.get();
+  ticksExtraRange_t originTicks = extTimer->get();
 
-  ticksExtraRange_t actionTicks = originTicks + 600;
+  ticksExtraRange_t actionTicks = originTicks + 800;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, originTicks));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, originTicks));
 
-  TEST_ASSERT_FALSE(TimerAction1A.cancel());
+  TEST_ASSERT_FALSE(timerAction->cancel());
 
-  while (ExtTimer1.get() - originTicks < actionTicks - originTicks) {}
+  while (extTimer->get() - originTicks < actionTicks - originTicks) {}
 
-  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(11));
+  TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(pin));
 }
 
 void cb(TimerAction *timerAction, void *data)
@@ -280,45 +283,45 @@ void cb(TimerAction *timerAction, void *data)
 
 void test_cb()
 {
-  ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
+  ticksExtraRange_t actionTicks = extTimer->get() + 1000;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, cb));
 
-  while (ExtTimer1.get() < actionTicks + 100) {}
+  while (extTimer->get() < actionTicks + 100) {}
 
   TEST_ASSERT_EQUAL(1, cbCallCount);
 }
 
 void test_cbMiss()
 {
-  ticksExtraRange_t actionTicks = ExtTimer1.get();
+  ticksExtraRange_t actionTicks = extTimer->get();
 
-  TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
+  TEST_ASSERT_FALSE(timerAction->schedule(actionTicks, CompareAction::Set, cb));
 
   TEST_ASSERT_EQUAL(1, cbCallCount);
 }
 
 void cbChained(TimerAction *timerAction, void *data)
 {
-  ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
+  ticksExtraRange_t actionTicks = extTimer->get() + 1000;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, cb));
 }
 
 void cbChained2(TimerAction *timerAction, void *data)
 {
-  ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
+  ticksExtraRange_t actionTicks = extTimer->get() + 1000;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cbChained));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, cbChained));
 }
 
 void test_cbChained()
 {
-  ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
+  ticksExtraRange_t actionTicks = extTimer->get() + 1000;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cbChained2));
+  TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, cbChained2));
 
-  while (ExtTimer1.get() < actionTicks + 3000) {}
+  while (extTimer->get() < actionTicks + 3000) {}
 
   TEST_ASSERT_EQUAL(1, cbCallCount);
 }
@@ -326,10 +329,13 @@ void test_cbChained()
 void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
-  //delay(2000);
-  delay(100);
+  delay(2000);
 
   UNITY_BEGIN();    // IMPORTANT LINE!
+
+  pin = 11;
+  extTimer = &ExtTimer1;
+  timerAction = &TimerAction1A;
 
   RUN_TEST(test_basic);
   RUN_TEST(test_timerOverflow);
@@ -345,6 +351,44 @@ void setup() {
   RUN_TEST(test_cb);
   RUN_TEST(test_cbMiss);
   RUN_TEST(test_cbChained);
+
+  pin = 6;
+  extTimer = &ExtTimer0;
+  timerAction = &TimerAction0A;
+
+  /*RUN_TEST(test_basic);
+  RUN_TEST(test_timerOverflow);
+  RUN_TEST(test_timerOverflowOrigin);
+  RUN_TEST(test_longmiss);
+  RUN_TEST(test_shortmiss);
+  RUN_TEST(test_supershortmiss);
+  RUN_TEST(test_pastmiss);
+  RUN_TEST(test_origin);
+  RUN_TEST(test_cancel_success);
+  RUN_TEST(test_cancel_long_success);
+  RUN_TEST(test_cancel_failure);
+  RUN_TEST(test_cb);
+  RUN_TEST(test_cbMiss);
+  RUN_TEST(test_cbChained);*/
+
+  pin = 8;
+  extTimer = &ExtTimer2;
+  timerAction = &TimerAction2A;
+
+  /*RUN_TEST(test_basic);
+  RUN_TEST(test_timerOverflow);
+  RUN_TEST(test_timerOverflowOrigin);
+  RUN_TEST(test_longmiss);
+  RUN_TEST(test_shortmiss);
+  RUN_TEST(test_supershortmiss);
+  RUN_TEST(test_pastmiss);
+  RUN_TEST(test_origin);
+  RUN_TEST(test_cancel_success);
+  RUN_TEST(test_cancel_long_success);
+  RUN_TEST(test_cancel_failure);
+  RUN_TEST(test_cb);
+  RUN_TEST(test_cbMiss);
+  RUN_TEST(test_cbChained);*/
 
   UNITY_END(); // stop unit testing
 }
