@@ -74,13 +74,14 @@ void ExtTimer::set(ticksExtraRange_t ticks)
   if (_tcnth)
   {
     // 16-bit timer
-    _overflowTicks = ticks & 0xFFFF0000;
 
     uint8_t highByte = (ticks & 0x0000FF00) >> 8;
 
-    // Ensure that TCNT is set and TOV is cleared together
+    // Ensure that TCNT is set, overflow is set, and TOV is cleared all together
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
+      _overflowTicks = ticks & 0xFFFF0000;
+
       // Follow correct 16-bit register access rules by setting the high register first
       *_tcnth = highByte;
       *_tcntl = (uint8_t)ticks;
@@ -92,11 +93,12 @@ void ExtTimer::set(ticksExtraRange_t ticks)
   else
   {
     // 8-bit timer
-    _overflowTicks = ticks & 0xFFFFFF00;
 
-    // Ensure that TCNT is set and TOV is cleared together
+    // Ensure that TCNT is set, overflow is set, and TOV is cleared all together
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
+      _overflowTicks = ticks & 0xFFFFFF00;
+
       *_tcntl = (uint8_t)ticks;
 
       // Clear overflow flag
