@@ -60,9 +60,10 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
 
       if (!didHit)
       {
-        // Disable the interrupt and set previous compare action
+        // Disable the interrupt, clear the interrupt flag, and set previous compare action
         setOutputCompareAction(_timer, _prevCompareAction);
         *_extTimer->getTIMSK() &= ~(1 << _ocie);
+        *_extTimer->getTIFR() = (1 << _ocf);
         
         _state = MissedAction;
         successful = false;
@@ -133,9 +134,10 @@ bool TimerAction::cancel()
 {
   if (WaitingToSchedule == _state)
   {
-    // Disable the interrupt and set previous compare action
-    *_extTimer->getTIMSK() &= ~(1 << _ocie);
+    // Disable the interrupt, clear the interrupt flag, and set previous compare action
     setOutputCompareAction(_timer, _prevCompareAction);
+    *_extTimer->getTIMSK() &= ~(1 << _ocie);
+    *_extTimer->getTIFR() = (1 << _ocf);
     return true;
   }
   else if (Scheduled == _state)
@@ -152,9 +154,10 @@ bool TimerAction::cancel()
       didHit = *_extTimer->getTIFR() & (1 << _ocf);
     }
 
-    // Disable the interrupt and set previous compare action
-    *_extTimer->getTIMSK() &= ~(1 << _ocie);
+    // Disable the interrupt, clear the interrupt flag, and set previous compare action
     setOutputCompareAction(_timer, _prevCompareAction);
+    *_extTimer->getTIMSK() &= ~(1 << _ocie);
+    *_extTimer->getTIFR() = (1 << _ocf);
 
     if (didHit)
     {
@@ -179,8 +182,9 @@ bool TimerAction::tryProcessActionInPast(ticksExtraRange_t curTicks)
   // The action is now in the past
   if (curTicks - _originTicks >= _actionTicks - _originTicks)
   {
-    // Disable interrupt
+    // Disable interrupt and clear the interrupt flag
     *_extTimer->getTIMSK() &= ~(1 << _ocie);
+    *_extTimer->getTIFR() = (1 << _ocf);
 
     // Check for miss
     if (WaitingToSchedule == _state)
