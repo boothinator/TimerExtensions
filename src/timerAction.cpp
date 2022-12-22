@@ -18,6 +18,28 @@
 
 #include <util/atomic.h>
 
+#include <timerUtil.h>
+
+void TimerAction::configure(TimerClock clock)
+{
+  _extTimer->configure(clock);
+}
+
+ticksExtraRange_t TimerAction::millisecondsToTicks(uint32_t milliseconds)
+{
+  return ::millisecondsToTicks(milliseconds, getTimerClock(_extTimer->getTimer()));
+}
+
+ticksExtraRange_t TimerAction::microsecondsToTicks(uint32_t microseconds)
+{
+  return ::microsecondsToTicks(microseconds, getTimerClock(_extTimer->getTimer()));
+}
+
+ticksExtraRange_t TimerAction::getNow()
+{
+  return _extTimer->get();
+}
+
 bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
     ticksExtraRange_t originTicks, TimerActionCallback cb, void *cbData)
 {
@@ -111,6 +133,17 @@ bool TimerAction::schedule(ticksExtraRange_t actionTicks, CompareAction action,
   ticksExtraRange_t originTicks = _extTimer->get() - getBackdateTicks();
 
   return schedule(actionTicks, action, originTicks, cb, cbData);
+}
+
+bool TimerAction::schedule(ticksExtraRange_t actionTicks, ticksExtraRange_t originTicks,
+    TimerActionCallback cb, void *cbData)
+{
+  return schedule(actionTicks, CompareAction::Nothing, originTicks, cb, cbData);
+}
+
+bool TimerAction::schedule(ticksExtraRange_t actionTicks, TimerActionCallback cb, void *cbData)
+{
+  return schedule(actionTicks, CompareAction::Nothing, cb, cbData);
 }
 
 void TimerAction::tryScheduleSysRange(ticksExtraRange_t curTicks)

@@ -32,9 +32,19 @@ public:
     : _timer{timer}, _extTimer{extTimer}, _ocie{ocie}, _ocf{ocf}
   {}
 
+  void configure(TimerClock clock);
+
+  ticksExtraRange_t millisecondsToTicks(uint32_t milliseconds);
+  ticksExtraRange_t microsecondsToTicks(uint32_t microseconds);
+  ticksExtraRange_t getNow();
+
   bool schedule(ticksExtraRange_t actionTicks, CompareAction action,
       TimerActionCallback cb = nullptr, void *cbData = nullptr);
   bool schedule(ticksExtraRange_t actionTicks, CompareAction action, ticksExtraRange_t originTicks,
+      TimerActionCallback cb = nullptr, void *cbData = nullptr);
+  bool schedule(ticksExtraRange_t actionTicks, ticksExtraRange_t originTicks,
+      TimerActionCallback cb = nullptr, void *cbData = nullptr);
+  bool schedule(ticksExtraRange_t actionTicks,
       TimerActionCallback cb = nullptr, void *cbData = nullptr);
 
   bool cancel();
