@@ -1,4 +1,4 @@
-#include <timerUtil.h>
+#include <TimerExtensions.h>
 
 /*
  * Arduino (and AVR) timers are simple counters that are synchronized with
