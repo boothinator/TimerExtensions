@@ -43,6 +43,8 @@ void test_setTimerClock()
   setTimerClock(TIMER1, TimerClock::ClkDiv1024);
   TEST_ASSERT_EQUAL(0b00000101, TCCR1B & 0b00000111);
   
+  setTimerClock(TIMER2, TimerClock::Clk);
+  TEST_ASSERT_EQUAL(0b00000001, TCCR2B & 0b00000111);
   setTimerClock(TIMER2, TimerClock::ClkDiv8);
   TEST_ASSERT_EQUAL(0b00000010, TCCR2B & 0b00000111);
   setTimerClock(TIMER2, TimerClock::ClkDiv1024);
