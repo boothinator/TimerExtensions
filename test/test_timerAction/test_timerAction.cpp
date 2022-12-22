@@ -34,8 +34,6 @@ TimerAction *timerAction = &TimerAction1A;
 void setUp(void) {
   pinMode(pin, OUTPUT);
 
-  extTimer->configure(TimerClock::Clk);
-
   cbCallCount = 0;
 }
 
@@ -120,7 +118,7 @@ void test_timerOverflowOrigin()
 
   TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, originTicks));
 
-  while (extTimer->get() - originTicks < actionTicks - originTicks) {}
+  while (extTimer->get() - originTicks < actionTicks - originTicks + 100ul) {}
 
   TEST_ASSERT_EQUAL(TimerAction::Idle, timerAction->getState());
 
@@ -132,7 +130,7 @@ void test_supershortmiss()
   // Schedule something without enough lead time
   ticksExtraRange_t startTicks = extTimer->get();
 
-  ticksExtraRange_t actionTicks = startTicks + 100ul;
+  ticksExtraRange_t actionTicks = startTicks;
 
   TEST_ASSERT_FALSE(timerAction->schedule(actionTicks, CompareAction::Set, startTicks));
 
@@ -160,7 +158,7 @@ void test_shortmiss()
   // Schedule something without enough lead time
   ticksExtraRange_t startTicks = extTimer->get();
 
-  ticksExtraRange_t actionTicks = startTicks + 200ul;
+  ticksExtraRange_t actionTicks = startTicks;
 
   TEST_ASSERT_FALSE(timerAction->schedule(actionTicks, CompareAction::Set));
 
@@ -175,12 +173,15 @@ void test_shortmiss()
 
   TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set));
 
-  while (extTimer->get() - startTicks < actionTicks - startTicks) {}
+  while (extTimer->get() - startTicks <= actionTicks - startTicks + 1l) {}
 
   TEST_ASSERT_EQUAL(TimerAction::Idle, timerAction->getState());
 
   TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(pin));
 }
+
+
+extern volatile unsigned long timer0_overflow_count;
 
 void test_longmiss()
 {
@@ -190,14 +191,34 @@ void test_longmiss()
 
   ticksExtraRange_t startTicks = extTimer->get();
 
-  const ticksExtraRange_t actionTicks = startTicks + extTimer->getMaxSysTicks() + 1000ul;
+  const ticksExtraRange_t actionTicks = startTicks + extTimer->getMaxSysTicks() * 4l;
   TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set));
 
-  while (extTimer->get() - startTicks < actionTicks - startTicks) {}
+  ticks16_t prevTicks = extTimer->getSysRange();
+  while (extTimer->get() - startTicks <= actionTicks - startTicks + 10l) {
+    // Interrupts are off, so we need check for rollovers ourselves
+    ticks16_t curTicks = extTimer->getSysRange();
+
+    if (curTicks < prevTicks)
+    {
+      if (extTimer->getTimer() == TIMER0)
+      {
+        timer0_overflow_count++;
+      }
+      else
+      {
+        extTimer->processOverflow();
+      }
+    }
+
+    prevTicks = curTicks;
+  }
   
   // Now that the action time has passed, enable interrupts and let it process
   interrupts();
-  while (extTimer->get() - startTicks < actionTicks + extTimer->getMaxSysTicks() + 1000ul - startTicks) {}
+
+  while (extTimer->get() - startTicks
+    <= actionTicks + extTimer->getMaxSysTicks() + 10ul - startTicks) {}
 
   TEST_ASSERT_EQUAL(TimerAction::MissedAction, timerAction->getState());
 
@@ -269,9 +290,11 @@ void test_cancel_failure()
 
   TEST_ASSERT_TRUE(timerAction->schedule(actionTicks, CompareAction::Set, originTicks));
 
+  while (extTimer->get() - originTicks < actionTicks - originTicks) {}
+
   TEST_ASSERT_FALSE(timerAction->cancel());
 
-  while (extTimer->get() - originTicks < actionTicks - originTicks) {}
+  while (extTimer->get() - originTicks <= actionTicks - originTicks) {}
 
   TEST_ASSERT_EQUAL(HIGH, digitalReadPWM(pin));
 }
@@ -333,9 +356,16 @@ void setup() {
 
   UNITY_BEGIN();    // IMPORTANT LINE!
 
+#if defined(ARDUINO_AVR_MEGA2560)
   pin = 11;
+#elif defined(ARDUINO_AVR_UNO) 
+  pin = 6;
+#endif
   extTimer = &ExtTimer1;
   timerAction = &TimerAction1A;
+  extTimer->configure(TimerClock::Clk);
+
+  TEST_MESSAGE("TIMER1A");
 
   RUN_TEST(test_basic);
   RUN_TEST(test_timerOverflow);
@@ -352,11 +382,18 @@ void setup() {
   RUN_TEST(test_cbMiss);
   RUN_TEST(test_cbChained);
 
+#if defined(ARDUINO_AVR_MEGA2560)
+  pin = 13;
+#elif defined(ARDUINO_AVR_UNO) 
   pin = 6;
+#endif
   extTimer = &ExtTimer0;
   timerAction = &TimerAction0A;
+  extTimer->configure(TimerClock::ClkDiv8);
 
-  /*RUN_TEST(test_basic);
+  TEST_MESSAGE("TIMER0A");
+
+  RUN_TEST(test_basic);
   RUN_TEST(test_timerOverflow);
   RUN_TEST(test_timerOverflowOrigin);
   RUN_TEST(test_longmiss);
@@ -369,13 +406,20 @@ void setup() {
   RUN_TEST(test_cancel_failure);
   RUN_TEST(test_cb);
   RUN_TEST(test_cbMiss);
-  RUN_TEST(test_cbChained);*/
+  RUN_TEST(test_cbChained);
 
+#if defined(ARDUINO_AVR_MEGA2560)
+  pin = 10;
+#elif defined(ARDUINO_AVR_UNO) 
   pin = 8;
+#endif
   extTimer = &ExtTimer2;
   timerAction = &TimerAction2A;
+  extTimer->configure(TimerClock::ClkDiv8);
 
-  /*RUN_TEST(test_basic);
+  TEST_MESSAGE("TIMER2A");
+
+  RUN_TEST(test_basic);
   RUN_TEST(test_timerOverflow);
   RUN_TEST(test_timerOverflowOrigin);
   RUN_TEST(test_longmiss);
@@ -388,7 +432,7 @@ void setup() {
   RUN_TEST(test_cancel_failure);
   RUN_TEST(test_cb);
   RUN_TEST(test_cbMiss);
-  RUN_TEST(test_cbChained);*/
+  RUN_TEST(test_cbChained);
 
   UNITY_END(); // stop unit testing
 }
