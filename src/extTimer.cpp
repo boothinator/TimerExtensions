@@ -45,22 +45,29 @@ void ExtTimer::configure(TimerClock clock)
 ticksExtraRange_t ExtTimer::get() const
 {
   ticksExtraRange_t ovfTicks;
-  ticks16_t sys;
+  ticksExtraRange_t sys;
   uint8_t ovf;
+
+  ovfTicks = getOverflowTicks();
   
   // Prevent overflow ticks from incrementing and prevent TOV flag from clearing
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
-    ovfTicks = getOverflowTicks();
-
     sys = getSysRange();
 
     ovf = *_tifr & (1 << _tov);
   }
 
-  if (sys < (1UL << 15) && ovf > 0)
+  if (sys < (1UL << 4) && ovf > 0)
   {
-    return sys + ovfTicks + (1UL << 16);
+    if (_tcnth)
+    {
+      return sys + ovfTicks + (1UL << 16);
+    }
+    else
+    {
+      return sys + ovfTicks + (1UL << 8);
+    }
   }
   else 
   {
