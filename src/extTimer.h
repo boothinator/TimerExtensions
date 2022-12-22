@@ -45,6 +45,8 @@ public:
   uint32_t getOverflowCount() const;
   void resetOverflowCount();
 
+  ticksExtraRange_t getOverflowTicks() const;
+
   int getTimer() const;
   volatile uint8_t *getTIMSK() const;
   volatile uint8_t *getTIFR() const;
@@ -64,8 +66,6 @@ private:
   uint8_t _tov;
 
   int _timer;
-
-  ticksExtraRange_t getOverflowTicks() const;
 };
 
 #ifdef TCNT0
