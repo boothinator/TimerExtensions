@@ -16,23 +16,24 @@ Directly manipulating the timers/counters in Arduino and AVR is tedious and conf
 
 ## Examples
 
+* alarm - call a function some time in the future
 * code-timing - Count the number of clock cycles that a piece of code takes
 * pulse-generator - Similar to the classic Blink example, but with precise, jitter-free timing
 * blink-timing - Use an input capture unit to time the classic delay-based Blink example
 
 ## Usage
 
-### TimerUtil
+Include the TimerExtensions.h header.
 
-timerUtil.h
+### Utility Methods
 
-TimerUtil provides a number of convenience functions so you don't have to mess with AVR registers. Simply use digitalPinToTimer() to find the timer for a pin, or use timer names (TIMER0, TIMER1, etc.) to identify timers.
+This library provides a number of convenience functions so you don't have to mess with AVR registers. Simply use digitalPinToTimer() to find the timer for a pin, or use timer names (TIMER0, TIMER1, etc.) to identify timers.
 
 #### Clock and Mode
 
-`configureTimerClock(timer, clock)` - set the clock speed of a timer, relative to the CPU clock. Note that a value of None means that the clock is stopped.
+`setTimerClock(timer, clock)` - set the clock speed of a timer, relative to the CPU clock. Note that a value of None means that the clock is stopped.
 
-`configureTimerMode(timer, mode, resolution)` - change the timer mode.
+`setTimerMode(timer, mode, resolution)` - change the timer mode.
 
 `getTimerValue(timer)`  
 `setTimerValue(timer, ticks)` - get and set timer value. Most useful when the clock is stopped, and in Normal, CTC, or Fast PWM modes.
@@ -113,29 +114,36 @@ startAllTimers();
 
 ### ExtTimer
 
-extTimer.h
-
-ExtTimer extends the range of Arduino's built-in timers. Use with the Normal timer mode.
+ExtTimer extends the range of Arduino's built-in timers. Use with the Normal timer mode. The built-in timers are accessed through the ExtTimer0 through ExtTimer2 instances for the Arduino Uno, and ExtTimer0 through ExtTimer5 for the Mega
 
 Ex: 
 
 ```C++
-configureTimerMode(ExtTimer1.getTimer(), TimerMode::Normal);
+// Configure Extended Timer 1 to run at the speed of the clock, and then get the current ticks
+ExtTimer1.configure();
 ticksExtraRange_t ticks = ExtTimer1.get();
 ```
 
 ### Input Capture Interrupts
-
-timerInterrupts.h
 
 The interrupt interface is similar to the interface in Arduino, except that you attach an interrupt to a timer, and the function you provde needs to take a uint16_t argument that will hold the input capture value.
 
 `attachInputCaptureInterrupt(timer, func, edge)`  
 `detachInputCaptureInterrupt(uint8_t timer)`
 
-### PulseGen
+### TimerAction
 
-pulseGen.h
+TimerAction lets you perform actions at specific times, including calling a callback and setting, clearing, or toggling pins.
+
+Ex:
+```C++
+TimerAction1A.configure(TimerClock::ClkDiv8);
+ticksExtraRange_t nowTicks = TimerAction1A.getNow();
+ticksExtraRange_t alarmTicks = TimerAction1A.millisecondsToTicks(8000);
+TimerAction1A.schedule(alarmTicks, alarm);
+```
+
+### PulseGen
 
 PulseGen generates precise, jitter-free pulses on PWM pins. Note that this only when a timer's clock is in Normal mode, and the pin is set for output.
 
@@ -143,8 +151,7 @@ Note that PulseGen does not automatically set the pin mode.
 
 Ex: 
 ```C++
-configureTimerClock(ExtTimerPin11.getTimer(), TimerClock::ClkDiv1024);
-configureTimerMode(ExtTimerPin11.getTimer(), TimerMode::Normal);
+ExtTimerPin11.configure(TimerClock::ClkDiv1024);
 pinMode(11, OUTPUT);
 ticksExtraRange_t nowTicks = ExtTimerPin11.get();
 PulseGenPin11.setStart(nowTicks + 50000);
