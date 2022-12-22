@@ -517,13 +517,17 @@ void setOutputCompareAction(int timer, CompareAction action)
 
     switch (timer)
     {
+      case TIMER0A:
       case TIMER1A:
+      case TIMER2A:
       case TIMER3A:
       case TIMER4A:
       case TIMER5A:
         *tccra = (*tccra & 0b00111111) | (com << 6);
         break;
+      case TIMER0B:
       case TIMER1B:
+      case TIMER2B:
       case TIMER3B:
       case TIMER4B:
       case TIMER5B:
@@ -547,12 +551,16 @@ CompareAction getOutputCompareAction(int timer)
   {
     switch (timer)
     {
+      case TIMER0A:
       case TIMER1A:
+      case TIMER2A:
       case TIMER3A:
       case TIMER4A:
       case TIMER5A:
         return (CompareAction) ((*tccra & 0b11000000) >> 6);
+      case TIMER0B:
       case TIMER1B:
+      case TIMER2B:
       case TIMER3B:
       case TIMER4B:
       case TIMER5B:
