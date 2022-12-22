@@ -47,12 +47,12 @@ ticksExtraRange_t ExtTimer::get() const
   ticksExtraRange_t ovfTicks;
   ticksExtraRange_t sys;
   uint8_t ovf;
-
-  ovfTicks = getOverflowTicks();
   
   // Prevent overflow ticks from incrementing and prevent TOV flag from clearing
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
+    ovfTicks = getOverflowTicks();
+
     sys = getSysRange();
 
     ovf = *_tifr & (1 << _tov);
