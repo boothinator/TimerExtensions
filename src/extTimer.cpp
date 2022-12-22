@@ -22,7 +22,13 @@
 
 #include "timerTypes.h"
 
-#if !defined(USE_ARDUINO_TIMER0_OVERFLOW) || USE_ARDUINO_TIMER0_OVERFLOW
+#ifndef IMPLEMENT_TIMER0_OVERFLOW
+#define IMPLEMENT_TIMER0_OVERFLOW 0
+#endif
+
+#define USE_ARDUINO_TIMER0_OVERFLOW (!IMPLEMENT_TIMER0_OVERFLOW)
+
+#if USE_ARDUINO_TIMER0_OVERFLOW
 
 extern volatile unsigned long timer0_overflow_count;
 
@@ -58,21 +64,31 @@ ticksExtraRange_t ExtTimer::get() const
     ovf = *_tifr & (1 << _tov);
   }
 
-  if (sys < (1UL << 4) && ovf > 0)
+  ticksExtraRange_t ticks = sys + ovfTicks;
+
+  // Handle overflow only if the time overflowed recently
+  // and the overflow flag is set
+  if (ovf)
   {
     if (_tcnth)
     {
-      return sys + ovfTicks + (1UL << 16);
+      // 16-bit timer
+      if (sys < (1UL << 15))
+      {
+        ticks += (1UL << 16);
+      }
     }
     else
     {
-      return sys + ovfTicks + (1UL << 8);
+      // 8-bit timer
+      if (sys < (1UL << 7))
+      {
+        ticks += (1UL << 8);
+      }
     }
   }
-  else 
-  {
-    return sys + ovfTicks;
-  }
+
+  return ticks;
 }
 
 void ExtTimer::set(ticksExtraRange_t ticks)
@@ -104,7 +120,19 @@ void ExtTimer::set(ticksExtraRange_t ticks)
     // Ensure that TCNT is set, overflow is set, and TOV is cleared all together
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
+  // Use the Arduino overflow variable if defined
+#if USE_ARDUINO_TIMER0_OVERFLOW
+      if (TIMER0 == _timer)
+      {
+        timer0_overflow_count = ticks >> 8;
+      }
+      else
+      {
       _overflowTicks = ticks & 0xFFFFFF00;
+      }
+#elif
+      _overflowTicks = ticks & 0xFFFFFF00;
+#endif
 
       *_tcntl = (uint8_t)ticks;
 
@@ -197,7 +225,7 @@ uint32_t ExtTimer::getOverflowCount() const
   ticksExtraRange_t tmp;
 
   // Use the Arduino overflow variable if defined
-#ifdef timer0_overflow_count
+#if USE_ARDUINO_TIMER0_OVERFLOW
   if (TIMER0 == _timer)
   {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
@@ -230,7 +258,7 @@ void ExtTimer::resetOverflowCount()
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
     // Use the Arduino overflow variable if defined
-#ifdef timer0_overflow_count
+#ifdef USE_ARDUINO_TIMER0_OVERFLOW
     if (TIMER0 == _timer)
     {
       timer0_overflow_count = 0;
@@ -280,7 +308,7 @@ ticksExtraRange_t ExtTimer::getOverflowTicks() const
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
     // Use the Arduino overflow variable if defined
-#ifdef timer0_overflow_count
+#ifdef USE_ARDUINO_TIMER0_OVERFLOW
     if (TIMER0 == _timer)
     {
       tmp = timer0_overflow_count << 8;
