@@ -25,7 +25,7 @@
 
 char message[MAX_MESSAGE_LEN];
 
-volatile bool cbCalled = false;
+volatile int cbCallCount = 0;
 
 void setUp(void) {
   pinMode(11, OUTPUT);
@@ -33,7 +33,7 @@ void setUp(void) {
   setTimerClock(TIMER1, TimerClock::Clk);
   setTimerMode(TIMER1, TimerMode::Normal);
 
-  cbCalled = false;
+  cbCallCount = 0;
 }
 
 void tearDown(void) {
@@ -275,7 +275,7 @@ void test_cancel_failure()
 
 void cb(TimerAction *timerAction, void *data)
 {
-  cbCalled = true;
+  cbCallCount++;
 }
 
 void test_cb()
@@ -286,7 +286,7 @@ void test_cb()
 
   while (ExtTimer1.get() < actionTicks + 100) {}
 
-  TEST_ASSERT_TRUE(cbCalled);
+  TEST_ASSERT_EQUAL(1, cbCallCount);
 }
 
 void test_cbMiss()
@@ -295,7 +295,7 @@ void test_cbMiss()
 
   TEST_ASSERT_FALSE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
 
-  TEST_ASSERT_TRUE(cbCalled);
+  TEST_ASSERT_EQUAL(1, cbCallCount);
 }
 
 void cbChained(TimerAction *timerAction, void *data)
@@ -305,15 +305,22 @@ void cbChained(TimerAction *timerAction, void *data)
   TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
 }
 
+void cbChained2(TimerAction *timerAction, void *data)
+{
+  ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
+
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cbChained));
+}
+
 void test_cbChained()
 {
   ticksExtraRange_t actionTicks = ExtTimer1.get() + 1000;
 
-  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cb));
+  TEST_ASSERT_TRUE(TimerAction1A.schedule(actionTicks, CompareAction::Set, cbChained2));
 
   while (ExtTimer1.get() < actionTicks + 3000) {}
 
-  TEST_ASSERT_TRUE(cbCalled);
+  TEST_ASSERT_EQUAL(1, cbCallCount);
 }
 
 void setup() {
