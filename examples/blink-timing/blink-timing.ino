@@ -64,10 +64,7 @@ void setup() {
   uint8_t timer = inputCapturePinToTimer(8);
   
   // Configure the timer to run at the speed of the system clock
-  configureTimerClock(timer, TimerClock::Clk);
-
-  // Put timer in Normal timing mode
-  configureTimerMode(timer, TimerMode::Normal);
+  ExtTimerPin8.configure(TimerClock::Clk);
   
   pinMode(8, OUTPUT);
 
