@@ -302,16 +302,15 @@ void ExtTimer::processOverflow()
 
   if (_overflowCallback)
   {
-    _overflowCallback(_overflowCbData);
+    _overflowCallback();
   }
 }
 
-void ExtTimer::setOverflowCallback(OverflowCallback cb, void *cbdata)
+void ExtTimer::setOverflowCallback(OverflowCallback cb)
 {
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
     _overflowCallback = cb;
-    _overflowCbData = cbdata;
   }
 }
 
