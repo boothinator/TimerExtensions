@@ -299,6 +299,20 @@ void ExtTimer::processOverflow()
     // add 256 to the overflow ticks counter on overflow for 8-bit timers
     _overflowTicks += (1UL << 8);
   }
+
+  if (_overflowCallback)
+  {
+    _overflowCallback(_overflowCbData);
+  }
+}
+
+void ExtTimer::setOverflowCallback(OverflowCallback cb, void *cbdata)
+{
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  {
+    _overflowCallback = cb;
+    _overflowCbData = cbdata;
+  }
 }
 
 ticksExtraRange_t ExtTimer::getOverflowTicks() const

@@ -53,6 +53,10 @@ public:
 
   void processOverflow();
 
+  typedef void (*OverflowCallback)(void *cbData);
+
+  void setOverflowCallback(OverflowCallback cb, void *cbdata);
+
 private:
   volatile ticksExtraRange_t _overflowTicks = 0;
 
@@ -66,6 +70,9 @@ private:
   uint8_t _tov;
 
   int _timer;
+
+  OverflowCallback _overflowCallback = nullptr;
+  void *_overflowCbData = nullptr;
 };
 
 #ifdef TCNT0
