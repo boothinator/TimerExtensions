@@ -24,10 +24,21 @@
 
 char message[MAX_MESSAGE_LEN];
 
+bool overflowCallbackCalled = false;
+
+void overflowCallback()
+{
+  overflowCallbackCalled = true;
+}
+
 void setUp(void) {
+  overflowCallbackCalled = false;
   ExtTimer0.configure(TimerClock::Clk);
   ExtTimer1.configure(TimerClock::Clk);
   ExtTimer2.configure(TimerClock::Clk);
+
+  ExtTimer1.setOverflowCallback(overflowCallback);
+  ExtTimer2.setOverflowCallback(overflowCallback);
 }
 
 void tearDown(void) {
@@ -78,6 +89,11 @@ void test_uniformIncreasing(ExtTimer &extTimer)
     TEST_ASSERT_GREATER_OR_EQUAL_UINT32(prevTicks, curTicks);
 
     TEST_ASSERT_GREATER_OR_EQUAL_UINT32(prevOvfTicks, curOvfTicks);
+
+    if (&extTimer != &ExtTimer0 && curOvfTicks > 0)
+    {
+      TEST_ASSERT_TRUE(overflowCallbackCalled);
+    }
     
     prevTicks = curTicks;
     prevOvfTicks = curOvfTicks;
