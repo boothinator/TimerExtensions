@@ -28,6 +28,11 @@ public:
   ExtTimer(volatile uint8_t *tcntl, volatile uint8_t *tcnth, volatile uint8_t *timsk,
     uint8_t toie, volatile uint8_t *tifr, uint8_t tov, uint8_t timer);
   
+  ExtTimer(const ExtTimer&) = delete;
+  ExtTimer(ExtTimer&&) = delete;
+  ExtTimer& operator=(const ExtTimer &) = delete;
+  ExtTimer& operator=(ExtTimer &&) = delete;
+  
   void configure(TimerClock clock = TimerClock::Clk);
   
   ticksExtraRange_t get() const;

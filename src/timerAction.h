@@ -25,6 +25,11 @@
 class TimerAction {
 public:
   enum State : uint8_t {Idle, WaitingToSchedule, Scheduled, MissedAction};
+  
+  TimerAction(const TimerAction&) = delete;
+  TimerAction(TimerAction&&) = delete;
+  TimerAction& operator=(const TimerAction &) = delete;
+  TimerAction& operator=(TimerAction &&) = delete;
 
   typedef void (*TimerActionCallback) (TimerAction *, void *);
 
