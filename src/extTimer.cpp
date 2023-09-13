@@ -335,12 +335,12 @@ ticksExtraRange_t ExtTimer::decrementOverflow(ticksExtraRange_t ticks) const
 {
   if (_tcnth)
   {
-    // add 65536 to the overflow ticks counter on overflow for 16-bit timers
+    // subtract 65536 from the overflow ticks counter on overflow for 16-bit timers
     return ticks - (1UL << 16);
   }
   else
   {
-    // add 256 to the overflow ticks counter on overflow for 8-bit timers
+    // subtract 256 from the overflow ticks counter on overflow for 8-bit timers
     return ticks - (1UL << 8);
   }
 }
