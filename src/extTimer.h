@@ -63,6 +63,9 @@ public:
   void setOverflowCallback(OverflowCallback cb);
 
 private:
+  bool hasUnprocessedOverflow(uint8_t tifrVal) const;
+  ticksExtraRange_t getOverflowTicksInternal() const;
+
   volatile ticksExtraRange_t _overflowTicks = 0;
 
   volatile uint8_t *_tcntl;

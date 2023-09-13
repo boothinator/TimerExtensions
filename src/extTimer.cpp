@@ -57,7 +57,7 @@ ticksExtraRange_t ExtTimer::get() const
   // Prevent overflow ticks from incrementing and prevent TOV flag from clearing
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
-    ovfTicks = getOverflowTicks();
+    ovfTicks = getOverflowTicksInternal();
 
     sys = getSysRange();
 
@@ -171,7 +171,7 @@ ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks) const
 
   // Subtract another overflow if the ticks is after tcnt.
   // We're assuming that ticks is in the past, so so tcnt would have rolled over to get here.
-  if (getSysRange() < ticks)
+  if (getSysRange() <= ticks)
   {
     if (_tcnth)
     {
@@ -314,25 +314,55 @@ void ExtTimer::setOverflowCallback(OverflowCallback cb)
   }
 }
 
-ticksExtraRange_t ExtTimer::getOverflowTicks() const
+bool ExtTimer::hasUnprocessedOverflow(uint8_t tifrVal) const
+{
+  return tifrVal & (1 << _tov);
+}
+
+ticksExtraRange_t ExtTimer::getOverflowTicksInternal() const
 {
   ticksExtraRange_t tmp;
 
+  // Use the Arduino overflow variable if defined
+#ifdef USE_ARDUINO_TIMER0_OVERFLOW
+  if (TIMER0 == _timer)
+  {
+    tmp = timer0_overflow_count << 8;
+  }
+  else
+  {
+    tmp = _overflowTicks;
+  }
+#else
+  tmp = _overflowTicks;
+#endif
+
+  return tmp;
+}
+
+ticksExtraRange_t ExtTimer::getOverflowTicks() const
+{
+  ticksExtraRange_t tmp;
+  uint8_t tifrVal;
+
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
-    // Use the Arduino overflow variable if defined
-#ifdef USE_ARDUINO_TIMER0_OVERFLOW
-    if (TIMER0 == _timer)
+    tmp = getOverflowTicksInternal();
+    tifrVal = *_tifr;
+  }
+
+  // See if there was an unprocessed overflow
+  if (hasUnprocessedOverflow(tifrVal)) {
+    if (_tcnth)
     {
-      tmp = timer0_overflow_count << 8;
+      // add 65536 to the overflow ticks counter on overflow for 16-bit timers
+      tmp += (1UL << 16);
     }
     else
     {
-      tmp = _overflowTicks;
+      // add 256 to the overflow ticks counter on overflow for 8-bit timers
+      tmp += (1UL << 8);
     }
-#else
-    tmp = _overflowTicks;
-#endif
   }
 
   return tmp;

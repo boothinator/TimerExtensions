@@ -139,6 +139,98 @@ void test_uniformIncreasing2()
   test_uniformIncreasing(ExtTimer2);
 }
 
+void test_extTimer16()
+{
+  uint8_t tcntl = 0;
+  uint8_t tcnth = 0;
+  uint8_t timsk = 0;
+  uint8_t toie = 0;
+  uint8_t tifr = 0;
+  uint8_t tov = 0;
+  uint8_t timer = 0;
+
+  ExtTimer extTimer(&tcntl, &tcnth, &timsk, toie, &tifr, tov, timer);
+
+  TEST_ASSERT_BIT_HIGH(toie, timsk);
+
+  // Initial state: all zeroes
+  TEST_ASSERT_EQUAL(0, extTimer.get());
+  TEST_ASSERT_EQUAL(0, extTimer.getOverflowCount());
+  TEST_ASSERT_EQUAL(0, extTimer.getOverflowTicks());
+
+  // Test overflow
+  extTimer.processOverflow();
+
+  TEST_ASSERT_EQUAL_HEX32(0x00010000, extTimer.get());
+  TEST_ASSERT_EQUAL(1, extTimer.getOverflowCount());
+  TEST_ASSERT_EQUAL_HEX32(0x00010000, extTimer.getOverflowTicks());
+  TEST_ASSERT_EQUAL_HEX32(0x000100FF, extTimer.extend(0x00FF));
+  TEST_ASSERT_EQUAL_HEX32(0x000000FF, extTimer.extendTimeInPast(0x00FF));
+
+  // Test extend
+  tcntl = 0x00;
+  tcnth = 0x01;
+  tifr = 0;
+
+  TEST_ASSERT_EQUAL_HEX32(0x00010100, extTimer.get());
+  TEST_ASSERT_EQUAL_HEX32(0x00010000, extTimer.getOverflowTicks());
+  TEST_ASSERT_EQUAL_HEX32(0x000200FF, extTimer.extend(0x00FF));
+  TEST_ASSERT_EQUAL_HEX32(0x000100FF, extTimer.extendTimeInPast(0x00FF));
+
+  // Test overflow again
+  extTimer.processOverflow();
+  
+  tcntl = 0x00;
+  tcnth = 0x00;
+  tifr = 0;
+
+  TEST_ASSERT_EQUAL_HEX32(0x00020000, extTimer.get());
+  TEST_ASSERT_EQUAL_HEX32(0x00020000, extTimer.getOverflowTicks());
+  TEST_ASSERT_EQUAL_HEX32(0x000200FF, extTimer.extend(0x00FF));
+  TEST_ASSERT_EQUAL_HEX32(0x000100FF, extTimer.extendTimeInPast(0x00FF));
+  
+  // Test unprocessed overflow flag
+  tcntl = 0x00;
+  tcnth = 0x00;
+  tifr |= 1 << tov;
+
+  TEST_ASSERT_EQUAL_HEX32(0x00030000, extTimer.get());
+  TEST_ASSERT_EQUAL_HEX32(0x00030000, extTimer.getOverflowTicks());
+  TEST_ASSERT_EQUAL_HEX32(0x000300FF, extTimer.extend(0x00FF));
+  TEST_ASSERT_EQUAL_HEX32(0x000200FF, extTimer.extendTimeInPast(0x00FF));
+  
+  // Process overflow
+  tcntl = 0x00;
+  tcnth = 0x00;
+  tifr = 0;
+  extTimer.processOverflow();
+
+  TEST_ASSERT_EQUAL_HEX32(0x00030000, extTimer.get());
+  TEST_ASSERT_EQUAL_HEX32(0x00030000, extTimer.getOverflowTicks());
+  TEST_ASSERT_EQUAL_HEX32(0x000300FF, extTimer.extend(0x00FF));
+  TEST_ASSERT_EQUAL_HEX32(0x000200FF, extTimer.extendTimeInPast(0x00FF));
+  
+  // Test when extending a time that equals now
+  tcntl = 0xFF;
+  tcnth = 0x00;
+  tifr = 0;
+
+  TEST_ASSERT_EQUAL_HEX32(0x000300FF, extTimer.get());
+  TEST_ASSERT_EQUAL_HEX32(0x00030000, extTimer.getOverflowTicks());
+  TEST_ASSERT_EQUAL_HEX32(0x000300FF, extTimer.extend(0x00FF));
+  TEST_ASSERT_EQUAL_HEX32(0x000200FF, extTimer.extendTimeInPast(0x00FF));
+  
+  // Test when extending a time that is smaller than now
+  tcntl = 0x00;
+  tcnth = 0x01;
+  tifr = 0;
+
+  TEST_ASSERT_EQUAL_HEX32(0x00030100, extTimer.get());
+  TEST_ASSERT_EQUAL_HEX32(0x00030000, extTimer.getOverflowTicks());
+  TEST_ASSERT_EQUAL_HEX32(0x000400FF, extTimer.extend(0x00FF));
+  TEST_ASSERT_EQUAL_HEX32(0x000300FF, extTimer.extendTimeInPast(0x00FF));
+}
+
 void setup() {
   // NOTE!!! Wait for >2 secs
   // if board doesn't support software reset via Serial.DTR/RTS
@@ -152,6 +244,7 @@ void setup() {
   RUN_TEST(test_set8Bit);
   RUN_TEST(test_uniformIncreasing0);
   RUN_TEST(test_uniformIncreasing2);
+  RUN_TEST(test_extTimer16);
 
   UNITY_END(); // stop unit testing
 }
