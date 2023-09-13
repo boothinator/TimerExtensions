@@ -150,19 +150,12 @@ ticksExtraRange_t ExtTimer::extend(ticks16_t ticks) const
   // We're assuming that ticks is in the future, so so tcnt needs to roll over to get there.
   if (ticks < getSysRange())
   {
-    if (_tcnth)
-    {
-      // 16-bit timer
-      extTicks += (1UL << 16);
-    }
-    else
-    {
-      // 8-bit timer
-      extTicks += (1UL << 8);
-    }
+    return incrementOverflow(extTicks);
   }
-
-  return extTicks;
+  else
+  {
+    return extTicks;
+  }
 }
 
 ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks) const
@@ -173,19 +166,12 @@ ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks) const
   // We're assuming that ticks is in the past, so so tcnt would have rolled over to get here.
   if (getSysRange() <= ticks)
   {
-    if (_tcnth)
-    {
-      // 16-bit timer
-      extTicks -= (1UL << 16);
-    }
-    else
-    {
-      // 8-bit timer
-      extTicks -= (1UL << 8);
-    }
+    return decrementOverflow(extTicks);
   }
-
-  return extTicks;
+  else
+  {
+    return extTicks;
+  }
 }
 
 ticks16_t ExtTimer::getSysRange() const
@@ -289,16 +275,7 @@ volatile uint8_t *ExtTimer::getTIFR() const
 
 void ExtTimer::processOverflow()
 {
-  if (_tcnth)
-  {
-    // add 65536 to the overflow ticks counter on overflow for 16-bit timers
-    _overflowTicks += (1UL << 16);
-  }
-  else
-  {
-    // add 256 to the overflow ticks counter on overflow for 8-bit timers
-    _overflowTicks += (1UL << 8);
-  }
+  _overflowTicks = incrementOverflow(_overflowTicks);
 
   if (_overflowCallback)
   {
@@ -340,6 +317,34 @@ ticksExtraRange_t ExtTimer::getOverflowTicksInternal() const
   return tmp;
 }
 
+ticksExtraRange_t ExtTimer::incrementOverflow(ticksExtraRange_t ticks) const
+{
+  if (_tcnth)
+  {
+    // add 65536 to the overflow ticks counter on overflow for 16-bit timers
+    return ticks + (1UL << 16);
+  }
+  else
+  {
+    // add 256 to the overflow ticks counter on overflow for 8-bit timers
+    return ticks + (1UL << 8);
+  }
+}
+
+ticksExtraRange_t ExtTimer::decrementOverflow(ticksExtraRange_t ticks) const
+{
+  if (_tcnth)
+  {
+    // add 65536 to the overflow ticks counter on overflow for 16-bit timers
+    return ticks - (1UL << 16);
+  }
+  else
+  {
+    // add 256 to the overflow ticks counter on overflow for 8-bit timers
+    return ticks - (1UL << 8);
+  }
+}
+
 ticksExtraRange_t ExtTimer::getOverflowTicks() const
 {
   ticksExtraRange_t tmp;
@@ -352,18 +357,12 @@ ticksExtraRange_t ExtTimer::getOverflowTicks() const
   }
 
   // See if there was an unprocessed overflow
-  if (hasUnprocessedOverflow(tifrVal)) {
-    if (_tcnth)
-    {
-      // add 65536 to the overflow ticks counter on overflow for 16-bit timers
-      tmp += (1UL << 16);
-    }
-    else
-    {
-      // add 256 to the overflow ticks counter on overflow for 8-bit timers
-      tmp += (1UL << 8);
-    }
+  if (hasUnprocessedOverflow(tifrVal))
+  {
+    return incrementOverflow(tmp);
   }
-
-  return tmp;
+  else
+  {
+    return tmp;
+  }
 }

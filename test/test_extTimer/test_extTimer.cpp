@@ -157,6 +157,8 @@ void test_extTimer16()
   TEST_ASSERT_EQUAL(0, extTimer.get());
   TEST_ASSERT_EQUAL(0, extTimer.getOverflowCount());
   TEST_ASSERT_EQUAL(0, extTimer.getOverflowTicks());
+  TEST_ASSERT_EQUAL_HEX32(0x000000FF, extTimer.extend(0x00FF));
+  TEST_ASSERT_EQUAL_HEX32(0xFFFF00FF, extTimer.extendTimeInPast(0x00FF));
 
   // Test overflow
   extTimer.processOverflow();
