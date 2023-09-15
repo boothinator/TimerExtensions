@@ -64,6 +64,7 @@ public:
 
 private:
   bool hasUnprocessedOverflow(uint8_t tifrVal) const;
+  ticksExtraRange_t compensateForUnprocessedOverflow(ticksExtraRange_t ticks, uint8_t tifrVal) const;
   ticksExtraRange_t getOverflowTicksInternal() const;
   ticksExtraRange_t incrementOverflow(ticksExtraRange_t ticks) const;
   ticksExtraRange_t decrementOverflow(ticksExtraRange_t ticks) const;

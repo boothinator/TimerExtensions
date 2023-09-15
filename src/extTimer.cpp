@@ -144,11 +144,22 @@ void ExtTimer::set(ticksExtraRange_t ticks)
 
 ticksExtraRange_t ExtTimer::extend(ticks16_t ticks) const
 {
-  ticksExtraRange_t extTicks = ticks + getOverflowTicks();
+  ticksExtraRange_t overflowTicks;
+  uint8_t tifrVal;
+  ticks16_t sysTicks;
+
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  {
+    overflowTicks = getOverflowTicksInternal();
+    tifrVal = *_tifr;
+    sysTicks = getSysRange();
+  }
+
+  ticksExtraRange_t extTicks = compensateForUnprocessedOverflow(ticks + overflowTicks, tifrVal);
 
   // Add another overflow if the ticks is before tcnt.
   // We're assuming that ticks is in the future, so so tcnt needs to roll over to get there.
-  if (ticks < getSysRange())
+  if (ticks < sysTicks)
   {
     return incrementOverflow(extTicks);
   }
@@ -160,11 +171,22 @@ ticksExtraRange_t ExtTimer::extend(ticks16_t ticks) const
 
 ticksExtraRange_t ExtTimer::extendTimeInPast(ticks16_t ticks) const
 {
-  ticksExtraRange_t extTicks = ticks + getOverflowTicks();
+  ticksExtraRange_t overflowTicks;
+  uint8_t tifrVal;
+  ticks16_t sysTicks;
+
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  {
+    overflowTicks = getOverflowTicksInternal();
+    tifrVal = *_tifr;
+    sysTicks = getSysRange();
+  }
+  
+  ticksExtraRange_t extTicks = compensateForUnprocessedOverflow(ticks + overflowTicks, tifrVal);
 
   // Subtract another overflow if the ticks is after tcnt.
   // We're assuming that ticks is in the past, so so tcnt would have rolled over to get here.
-  if (getSysRange() <= ticks)
+  if (sysTicks <= ticks)
   {
     return decrementOverflow(extTicks);
   }
@@ -296,6 +318,19 @@ bool ExtTimer::hasUnprocessedOverflow(uint8_t tifrVal) const
   return tifrVal & (1 << _tov);
 }
 
+ticksExtraRange_t ExtTimer::compensateForUnprocessedOverflow(ticksExtraRange_t ticks, uint8_t tifrVal) const
+{
+  // See if there was an unprocessed overflow
+  if (hasUnprocessedOverflow(tifrVal))
+  {
+    return incrementOverflow(ticks);
+  }
+  else
+  {
+    return ticks;
+  }
+}
+
 ticksExtraRange_t ExtTimer::getOverflowTicksInternal() const
 {
   ticksExtraRange_t tmp;
@@ -347,22 +382,14 @@ ticksExtraRange_t ExtTimer::decrementOverflow(ticksExtraRange_t ticks) const
 
 ticksExtraRange_t ExtTimer::getOverflowTicks() const
 {
-  ticksExtraRange_t tmp;
+  ticksExtraRange_t overflowTicks;
   uint8_t tifrVal;
 
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
   {
-    tmp = getOverflowTicksInternal();
+    overflowTicks = getOverflowTicksInternal();
     tifrVal = *_tifr;
   }
 
-  // See if there was an unprocessed overflow
-  if (hasUnprocessedOverflow(tifrVal))
-  {
-    return incrementOverflow(tmp);
-  }
-  else
-  {
-    return tmp;
-  }
+  return compensateForUnprocessedOverflow(overflowTicks, tifrVal);
 }
